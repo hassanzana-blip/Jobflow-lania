@@ -90,6 +90,12 @@ export const mobileSv = {
   noLive: "Inga jobb har hämtats ännu.",
   partial:
     "Svar saknas från en jobbkälla. Resultaten kan därför vara ofullständiga.",
+  of: "av",
+  deepAnalysed: "djupanalyserade",
+  analysisQuotaSpent:
+    "Din månadspott för djupanalyser är slut. Övriga jobb visas som sökresultat utan matchning.",
+  analysisNeedsProfile:
+    "Bekräfta din profil så förklaras matchningen för de mest relevanta jobben.",
   lastSearch: "Senaste sökning",
   privacyLine: "Du väljer. JobbFlow förbereder.",
   privacyBody: "Ingenting skickas utan ditt godkännande.",

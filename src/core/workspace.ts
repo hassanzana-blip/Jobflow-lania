@@ -84,6 +84,14 @@ export type WorkspaceData = {
   applications: Application[];
   sources: { source: string; status: string }[];
   lastSearchAt: string | null;
+  /** What the last search managed to analyse, so the UI can say so plainly. */
+  analysis?: {
+    analysed: number;
+    budget: number;
+    retained: number;
+    quotaExhausted: boolean;
+    partial: boolean;
+  };
   notifications: boolean;
   capabilities: {
     ai: boolean;

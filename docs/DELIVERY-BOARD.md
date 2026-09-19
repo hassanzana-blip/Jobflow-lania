@@ -48,37 +48,62 @@ mot live gjøres av Jousef. «Hva som må verifiseres» nederst er listen.
 
 ## Etappe 2 — CV og bekreftet kandidatprofil
 
+Migreringen er kjørt mot produksjonsdatabasen og verifisert med spørring: alle
+seks nye kolonner på `documents`, `document_extractions` med RLS på og én policy,
+og `source_document_id` + `grounded` på `candidate_facts`. Additiv, `public` urørt.
+
+Endepunktprober mot live: `GET /api/documents` og `GET /api/documents/url` svarer
+begge 401 `UNAUTHENTICATED` med svensk tekst, og `POST /api/documents` fra fremmed
+origin svarer 403 `INVALID_ORIGIN`.
+
+Alt bak innlogging står som `blokkert: pålogget sesjon`. Opplasting, parse-tilstander,
+409 på karantene, to-bruker-isolasjon og første modellkall krever at Jousef logger
+inn én gang med en ekte fil. De er skrevet og lokalt testet, men ikke sett i drift.
+
 | Funksjon | Tilstand | Merknad |
 |---|---|---|
 | Manuell profil i tre steg | `testet lokalt` | `ProfileWizard`, dekket av Playwright-flyten. |
-| PDF/DOCX-opplasting | `testet lokalt` | `POST /api/documents`. `capabilities.cvUpload` er nå sann når service-nøkkel og Supabase-URL er satt, ellers viser UI-et ærlig at funksjonen ikke er tilkoblet. |
+| PDF/DOCX-opplasting | `blokkert: pålogget sesjon` | `POST /api/documents`. `capabilities.cvUpload` er nå sann når service-nøkkel og Supabase-URL er satt, ellers viser UI-et ærlig at funksjonen ikke er tilkoblet. |
 | Innholdskontroll av filer | `testet lokalt` | `validateUpload` sjekker magiske tall, MIME og endelse mot hverandre, og 10 MB-taket håndheves på bytes — ikke på `Content-Length`, som avsenderen kontrollerer. |
 | Filnavn som ikke kan brukes som våpen | `testet lokalt` | Objektnøkkelen utledes (`<uid>/<uuid>.<ext>`); brukerens filnavn lagres bare som visningstekst, strippet for stier og kontrolltegn. |
-| Privat lagring | `implementert, ikke testet` | Service-rollen laster opp til den private bucketen; feiler databasen, ryddes objektet bort så ingen fil blir eierløs. Krever ekte Supabase for å bekreftes. |
-| Tidsbegrensede signerte lenker | `implementert, ikke testet` | `GET /api/documents/url`, 120 sekunder, eierskap sjekket i spørringen. Gis bare ut for `scan_state='clean'`. |
+| Privat lagring | `blokkert: pålogget sesjon` | Service-rollen laster opp til den private bucketen; feiler databasen, ryddes objektet bort så ingen fil blir eierløs. Krever ekte Supabase for å bekreftes. |
+| Tidsbegrensede signerte lenker | `blokkert: pålogget sesjon` | `GET /api/documents/url`, 120 sekunder, eierskap sjekket i spørringen. Gis bare ut for `scan_state='clean'`. |
 | Isolert parsing | `testet lokalt` | Egen prosess uten miljøvariabler (ingen service-nøkkel, ingen DATABASE_URL), 256 MB heap-tak, 20 s hard avbrudd, begrenset stdout. Ekte barneprosess kjøres i testene. |
-| Virusskanning | `blokkert: CLAMAV_HOST` | clamd INSTREAM-klienten er skrevet og protokollen testet, men ingen daemon finnes. Uskannede dokumenter forblir `quarantined` og kan ikke lastes ned igjen — «skanner utilgjengelig» regnes aldri som «ren». |
-| Krypterte og uleselige dokumenter | `testet lokalt` | Seks navngitte utfall (`ENCRYPTED`, `NO_TEXT_LAYER`, `CORRUPT`, `UNSAFE_ARCHIVE`, `TIMEOUT`, `PARSER_FAILED`), hver med sin svenske setning. En innskannet PDF uten tekstlag får beskjed om nettopp det. |
+| Virusskanning | `blokkert: CLAMAV_HOST` — arbeidsantakelse (b): behold 409, åpne aldri nedlasting for uskannede filer | clamd INSTREAM-klienten er skrevet og protokollen testet, men ingen daemon finnes. Uskannede dokumenter forblir `quarantined` og kan ikke lastes ned igjen — «skanner utilgjengelig» regnes aldri som «ren». |
+| Krypterte og uleselige dokumenter | `blokkert: pålogget sesjon` (lokalt: `testet lokalt`) | Seks navngitte utfall (`ENCRYPTED`, `NO_TEXT_LAYER`, `CORRUPT`, `UNSAFE_ARCHIVE`, `TIMEOUT`, `PARSER_FAILED`), hver med sin svenske setning. En innskannet PDF uten tekstlag får beskjed om nettopp det. |
 | DOCX-arkivforsvar | `testet lokalt` | Egen leser uten avhengighet: avviser krypterte poster, zip-bomber (både oppgitt ratio og faktisk utvidelse), stitraversering og alt annet enn `word/document.xml`. |
 | Strukturert uttrekk med kildesitat | `testet lokalt` | `CandidateExtractionSchema` med sitat per faktum. |
 | Usikkerhetsmarkering | `testet lokalt` | Usikkerhet **måles**, den spørres ikke modellen om: et faktum er «hittad i ditt dokument» bare når sitatet faktisk finnes i den opplastede teksten. Resten vises som osäkert og er ikke forhåndsvalgt. |
 | Brukeren må korrigere og bekrefte | `testet lokalt` | Ingenting skrives til `candidate_facts` før bekreftelse. Redigerer brukeren et forslag, mister det sitatet sitt og lagres som brukerens egen påstand — `source_quote` blir null og `grounded` false. |
 | CV-innhold som ubetrodd data | `testet lokalt` | Teksten går som `data` i providerens JSON-nyttelast, aldri som instruksjon; systemprompten sier det eksplisitt, og alle forslag verifiseres av kode etterpå uansett hva modellen påstår. |
-| Gjenopptakelig gjennomgang | `implementert, ikke testet` | En ubekreftet `document_extractions`-rad hentes ved innlasting, så en refresh ikke mister arbeidet. Krever database for å bekreftes. |
+| Gjenopptakelig gjennomgang | `blokkert: pålogget sesjon` | En ubekreftet `document_extractions`-rad hentes ved innlasting, så en refresh ikke mister arbeidet. Krever database for å bekreftes. |
 | Dokumenttekst lagres ikke | `testet lokalt` | Bare sitatene som støtter et forslag lagres. Hele CV-teksten forlater aldri prosessen som leste den. |
 
 ## Etappe 3 — Ekte personlig jobbsøk
 
+Hele rørledningen ligger nå i én ren funksjon, `planSearch` i `src/core/pipeline.ts`:
+henting → deduplisering → deterministisk filtrering → rangering → budsjett.
+«Modellen ser aldri en annonse kandidaten har utelukket» er dermed en testet
+egenskap, ikke en intensjon.
+
 | Funksjon | Tilstand | Merknad |
 |---|---|---|
-| Henting fra JobSearch og JobAd Links | `blokkert: nettverk i denne sesjonen` | `src/core/sources.ts`. Kontrakttester mot lagrede svar passerer. |
-| Normalisering og deduplisering | `testet lokalt` | `deduplicate`, `canonicalUrl`, `possibleDuplicateKey`. |
-| Deterministisk filtrering | `testet lokalt` | `filterJob`, utløpte og fjernede annonser lukes ut. |
-| Kandidatvalg før AI | `testet lokalt` | `scoreFactors` gir strukturell kortliste; hele listen sendes ikke til modellen. |
-| AI-analyse av de mest relevante | `blokkert: bekreftet Meta Model API-kall` | Se etappe 4. |
-| `?q=` og filtre leses fra URL | `verifisert i produksjon` | `src/core/search-params.ts`. `/hitta-jobb?q=utvecklare` kjører søket på serveren; klienten skriver tilbake med `router.replace`. |
+| Henting fra JobSearch og JobAd Links | `blokkert: nettverk i denne sesjonen` | `src/core/sources.ts`. Kontrakttester mot lagrede svar passerer. Du bekreftet 60 treff i produksjon i etappe 1. |
+| Normalisering og deduplisering | `testet lokalt` | Samme annonse fra begge kilder blir ett jobb; sporingsparametre bryter ikke sammenslåingen. |
+| Deterministisk filtrering | `testet lokalt` | Utelukket tittel, utelukket arbeidsgiver, fjernet og utløpt annonse lukes ut før noe koster penger. Hver avvisning har en grunn. |
+| Kandidatvalg før AI | `testet lokalt` | `shortlist` rangerer på yrkesgruppe, rolleoverlapp og ferskhet. Taket er 6 annonser per søk — Free har 25 djupanalyser i måneden, så et høyere tall ville brent en tredjedel på ett klikk. |
+| Ikke send alle annonser til modellen | `testet lokalt` | Testet direkte: 40 hentede annonser gir 6 analyser, og en avvist annonse når aldri providern. |
+| AI-analyse av de mest relevante | `blokkert: bekreftet Meta Model API-kall` | Koden kaller `scoreJob` for kortlisten, lagrer `job_matches` + `match_factors`, og reserverer kvote per jobb. Aldri kjørt mot ekte API. |
+| Poengsummen regnes av kode, ikke av modellen | `testet lokalt` | Dette var en reell feil: `scoreJob` kjørte `scoreFactors` for validering og kastet resultatet. Nå returneres den vektede summen, og modellen leverer bare faktorer og bevis. |
+| Et faktum modellen finner på stopper analysen | `testet lokalt` | Et bevis-ID som ikke finnes blant bekreftede fakta gir feil på det jobbet; resten av søket berøres ikke. |
+| Kvote brennes ikke på nytt ved refresh | `testet lokalt` | Reservasjons-ID utledes av bruker + jobb + profilversjon, og `reserve_usage` er idempotent på den. Ny bekreftet profilversjon er en ny analyse og koster på nytt. |
+| Feilet analyse koster ingenting | `implementert, ikke testet` | Reservasjonen slippes når kallet ikke fører til en lagret match. Krever database for å bekreftes. |
+| Analyse overlever refresh | `implementert, ikke testet` | `loadWorkspace` henter score, sammendrag, grunner og mangler for gjeldende profilversjon. En ny profilversjon lar ikke gamle poeng stå som om de var aktuelle. |
+| `?q=` og filtre leses fra URL | `verifisert i produksjon` | Bekreftet av Jousef. |
 | Kilde, sted, arbeidsform, datoer, originallenke | `testet lokalt` | Ukjente felter vises som «ej angiven», ikke gjettet. |
-| Delvis kildefeil vises ærlig | `testet lokalt` | Teksten er nå «Svar saknas från en jobbkälla. Resultaten kan därför vara ofullständiga.» |
+| Delvis kildefeil vises ærlig | `testet lokalt` | «Svar saknas från en jobbkälla. Resultaten kan därför vara ofullständiga.» |
+| Hvor mye som faktisk ble analysert vises | `testet lokalt` | «6 av 42 djupanalyserade.» En score på seks av førti er ikke en rangert liste over førti, og det står det. Tom kvote og ubekreftet profil får hver sin setning. |
+| CI som vokter en PR | `testet lokalt` | `.github/workflows/ci.yml` kjører typecheck, `npm test` og Playwright på hver PR. Til nå voktet bare Netlify-bygget, som sier ingenting om at appen virker. |
 
 ## Etappe 4 — AI som er sannferdig
 
@@ -129,48 +154,39 @@ mot live gjøres av Jousef. «Hva som må verifiseres» nederst er listen.
 ## Testkjøringer i denne sesjonen
 
 - `npm run typecheck` — passerer.
-- `npm test` — 49 tester passerer (36 fra før + 13 nye for DOCX-arkivforsvar, isolert
-  parsing, uttrekksverifisering, filnavnshåndtering og clamd-protokollen).
+- `npm test` — 58 tester passerer (49 fra før + 9 nye for rørledningen og for at
+  poengsummen regnes av kode).
 - `npm run build` — passerer.
 - `npm run test:e2e` — 13 av 13 passerer i ekte Chromium.
-- `npm audit` — 0 sårbarheter. `drizzle-orm` var deklarert uten å importeres noe sted
-  og hadde et høyt-alvorlig SQL-injeksjonsvarsel; den er fjernet. Legg den inn igjen
-  i ≥0.45.2 den dagen det typede skjemaet faktisk skal bygges.
-- Ny avhengighet: `pdfjs-dist` for PDF-tekstuttrekk. Valgt framfor en egen parser
-  fordi den er bygget for å lese fiendtlige PDF-er i nettlesere, og fordi den
-  håndterer kryptering, CID-fonter og teksttilstand som en hjemmesnekret leser
-  ville tatt feil av på svenske tegn. Den kjøres bare i den isolerte prosessen.
-  DOCX har ingen ny avhengighet — arkivleseren er skrevet her, nettopp for å
-  kontrollere zip-bombeforsvaret selv.
+- `npm audit` — 0 sårbarheter.
 
 ## Hva jeg trenger at du verifiserer i produksjon
 
-I denne rekkefølgen. Alt under krever ekte Supabase, som jeg ikke når.
+Punkt 1 gjelder før merge. Resten krever én pålogget sesjon — det er den samme
+sperren som stoppet etappe 2, og den flytter seg ikke før noen logger inn med en
+ekte fil.
 
-1. **Migreringen.** Kjør `supabase/migrations/20260919160000_cv_upload_and_extraction.sql`.
-   Den er additiv og rører ikke `public`. Deretter `npm run check:live` — den bør
-   fortsatt rapportere RLS på for alle tabeller, nå inkludert `document_extractions`.
-2. **Opplasting av en ekte PDF.** Logg inn, gå til Profil, last opp et CV. Forvent:
-   en rad i `jobbflow.documents` med `parse_state='parsed'`, `scan_state='quarantined'`,
-   `original_name` uten sti, og en objektnøkkel på formen `<uid>/<uuid>.pdf`.
-3. **Opplasting av en innskannet PDF** (et foto lagret som PDF). Forvent den svenske
-   setningen om at dokumentet ikke har markerbar text, ikke en tom profil.
-4. **Opplasting av et lösenordsskyddat dokument.** Forvent setningen om lösenord.
-5. **Gjennomgangen.** Med `META_MODEL_API_KEY` satt: kontroller at forslag som
-   stemmer med dokumentet er merket «Hittad i ditt dokument» og forhåndsvalgt, og at
-   noe modellen har funnet på er merket osäkert og *ikke* forhåndsvalgt. Dette er
-   første gang modellen kalles i produksjon — logg latens og kostnad fra
-   `jobbflow.model_usage`.
-6. **Bekreftelsen.** Behold ett forslag uendret, rediger et annet, og bekreft.
-   Forvent i `jobbflow.candidate_facts`: det uendrede har `source_quote` satt,
-   `grounded=true` og `source_document_id`; det redigerte har `source_quote` null og
-   `grounded=false`.
-7. **Signert lenke.** `GET /api/documents/url?id=<id>` skal svare 409 så lenge
-   dokumentet er `quarantined`. Det er riktig oppførsel uten virusskanner — ikke
-   en feil å «fikse» ved å slippe gjennom uskannede filer.
-8. **To brukere.** Bekreft at bruker B verken får `document_extractions`-rader eller
-   signerte lenker for bruker A.
-9. **axe** på profilsiden etter at gjennomgangen vises, på 390 px.
+1. **Migreringen.** Kjør `supabase/migrations/20260919180000_match_gaps_and_analysis_counts.sql`.
+   Additiv: `gaps` på `job_matches`, `analysed` og `analysis_skipped` på `search_runs`.
+2. **CI.** Workflowen vokter først PR-er etter at den ligger på `main`. Sjekk at
+   den blir grønn på neste PR, og at den faktisk kjører Playwright og ikke bare bygger.
+3. **Et søk med bekreftet profil og modellnøkkel.** Forvent: høyst 6 jobb med
+   score, linjen «6 av N djupanalyserade», og `jobbflow.job_matches` med
+   `method_version='evidence-v1'` for nettopp de seks. Resten skal ha
+   `retrieval-v1` og ingen score.
+4. **Kvote.** Kjør samme søk to ganger. `jobbflow.usage_events` skal ikke vokse
+   andre gang — reservasjons-ID-en er den samme. Bekreft deretter en ny
+   profilversjon og søk igjen: nå *skal* den vokse.
+5. **Refresh.** Last siden på nytt og bekreft at scorene fortsatt vises, med
+   grunner og mangler.
+6. **Delvis kildefeil.** Hvis du kan få én kilde til å feile, bekreft at
+   resultatene fra den andre vises sammen med «Svar saknas från en jobbkälla».
+7. **Kostnad og latens.** Les `jobbflow.model_usage` etter søket. Dette er
+   fortsatt første gang modellen kalles i produksjon — hvis latensen gjør et søk
+   ubehagelig tregt, si fra, så flytter jeg analysen til en kø i etappe 7 i
+   stedet for å gjøre den synkront.
+8. Punkt 2 til 8 fra forrige runde står fortsatt åpne (opplasting, parse-tilstander,
+   409 på karantene, to-bruker-isolasjon).
 
 ## Beslutninger jeg trenger fra deg
 
