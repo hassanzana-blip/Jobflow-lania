@@ -1,0 +1,60 @@
+name: CI
+
+# Until now the only check on a pull request was whether Netlify could build
+# it. A build succeeding says nothing about whether the app works, so this runs
+# the checks that do: types, the unit and migration suite, and the browser
+# tests that found the accessible-name defect axe had missed.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A new push supersedes the run in flight for the same branch.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Unit, contract and migration tests
+        # Includes the PostgreSQL migrations, run for real in PGlite, so a
+        # migration that does not apply fails here rather than in production.
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      # The browser suite runs against a production server, because `next dev`
+      # does not hydrate in a sandboxed runner: pages render but never become
+      # interactive, and every click test then passes vacuously or hangs.
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser and accessibility tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

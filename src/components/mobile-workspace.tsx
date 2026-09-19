@@ -247,6 +247,7 @@ export function MobileWorkspace({
               jobs: WorkspaceJob[];
               sources: WorkspaceData["sources"];
               lastSearchAt: string;
+              analysis?: WorkspaceData["analysis"];
             }>("/api/search", "POST", { query });
       setData((d) => ({
         ...d,
@@ -517,6 +518,17 @@ export function MobileWorkspace({
               </div>
               {data.sources.some((s) => s.status !== "ok") && (
                 <p className="jf-source-notice">{t.partial}</p>
+              )}
+              {/* How much of this result was actually looked at closely. A
+                  score on six jobs out of forty is not a ranked list of forty,
+                  and saying so is cheaper than letting it be assumed. */}
+              {mode === "live" && data.analysis && view === "home" && (
+                <p className="jf-source-notice">
+                  {data.analysis.analysed} {t.of} {data.analysis.retained}{" "}
+                  {t.deepAnalysed}.
+                  {data.analysis.quotaExhausted ? ` ${t.analysisQuotaSpent}` : ""}
+                  {!data.profile.confirmed ? ` ${t.analysisNeedsProfile}` : ""}
+                </p>
               )}
               <div className="jf-job-grid">
                 {filtered.map((job, index) => (

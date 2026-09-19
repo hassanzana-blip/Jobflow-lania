@@ -117,6 +117,20 @@ export const ApplicationQuestionSchema = z
   .strict();
 export type ApplicationDraft = z.infer<typeof ApplicationDraftSchema>;
 
+/**
+ * What the model returned, plus the score derived from it by code. The
+ * separation is deliberate: a provider may propose factors and evidence, but
+ * the number a candidate sees is always computed from the weighted method.
+ */
+export type ScoredMatch = z.infer<typeof JobMatchSchema> & {
+  score: number | null;
+  coverage: number;
+  confidence: string;
+  strong: boolean;
+  blockers: z.infer<typeof FactorSchema>[];
+  methodVersion: string;
+};
+
 // Internal canonical model, NOT an assumed upstream API schema.
 export const JobSchema = z.object({
   id: z.string().min(1),
@@ -162,14 +176,8 @@ export interface AIProvider {
   analyseCandidate(
     text: string,
   ): Promise<z.infer<typeof CandidateExtractionSchema>>;
-  scoreJob(
-    candidate: Candidate,
-    job: Job,
-  ): Promise<z.infer<typeof JobMatchSchema>>;
-  explainMatch(
-    candidate: Candidate,
-    job: Job,
-  ): Promise<z.infer<typeof JobMatchSchema>>;
+  scoreJob(candidate: Candidate, job: Job): Promise<ScoredMatch>;
+  explainMatch(candidate: Candidate, job: Job): Promise<ScoredMatch>;
   tailorCV(candidate: Candidate, job: Job): Promise<ApplicationDraft>;
   createCoverLetter(candidate: Candidate, job: Job): Promise<ApplicationDraft>;
   answerApplicationQuestion(

@@ -151,8 +151,20 @@ export class MuseProvider implements AIProvider {
       ...f,
       source: f.value === null ? ("unknown" as const) : ("ai" as const),
     }));
-    scoreFactors(result.factors, confirmed);
-    return result;
+    // The model supplies evidence and reasoning; the number comes from the
+    // weighted method in `matching.ts`. scoreFactors also rejects any factor
+    // citing a fact the candidate never confirmed, so an invented qualification
+    // throws here rather than reaching the candidate as a score.
+    const scored = scoreFactors(result.factors, confirmed);
+    return {
+      ...result,
+      score: scored.score,
+      coverage: scored.coverage,
+      confidence: scored.confidence,
+      strong: scored.strong,
+      blockers: scored.blockers,
+      methodVersion: scored.version,
+    };
   }
   async explainMatch(candidate: Candidate, job: Job) {
     return this.scoreJob(candidate, job);

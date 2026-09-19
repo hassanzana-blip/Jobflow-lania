@@ -9,7 +9,11 @@ import {
   type WorkspaceJob,
 } from "@/core/workspace";
 import { retrieve } from "@/core/sources";
-import { deduplicate, filterJob } from "@/core/matching";
+import { MATCH_VERSION } from "@/core/matching";
+import { planSearch, ANALYSIS_BUDGET_PER_SEARCH } from "@/core/pipeline";
+import { analyseJobs, withAnalysis } from "./analysis";
+import { MuseProvider, type ModelMetric } from "@/core/muse";
+import { CandidateSchema } from "@/core/contracts";
 
 type Row = Record<string, any>;
 export function jobFromRow(j: Row): Job {
@@ -52,7 +56,21 @@ export async function loadWorkspace(): Promise<WorkspaceData> {
     sql`select * from jobbflow.profiles where user_id=${uid} and state='active'`,
     sql`select * from jobbflow.candidate_preferences where user_id=${uid}`,
     sql`select f.* from jobbflow.candidate_facts f join jobbflow.profiles p on p.user_id=f.user_id and p.version=f.profile_version where f.user_id=${uid} order by f.created_at,f.id`,
-    sql`select distinct j.* from jobbflow.jobs j where j.id in (select job_id from jobbflow.job_matches where user_id=${uid} union select job_id from jobbflow.saved_jobs where user_id=${uid} union select job_id from jobbflow.applications where user_id=${uid}) order by j.published_at desc limit 150`,
+    // A deep analysis is carried forward only while it still describes the
+    // profile it was made against: confirming a new version does not leave old
+    // scores standing as if they were current.
+    sql`select j.*, m.score, m.coverage, m.summary, m.gaps, coalesce(mf.reasons,'{}') as match_reasons
+        from jobbflow.jobs j
+        left join jobbflow.job_matches m
+          on m.job_id=j.id and m.user_id=${uid} and m.method_version=${MATCH_VERSION}
+          and m.profile_version=(select version from jobbflow.profiles where user_id=${uid})
+        left join lateral (
+          select array_agg(f.reason order by f.value desc nulls last) as reasons
+          from jobbflow.match_factors f
+          where f.match_id=m.id and f.user_id=${uid} and f.value>=0.6 and cardinality(f.evidence_ids)>0
+        ) mf on true
+        where j.id in (select job_id from jobbflow.job_matches where user_id=${uid} union select job_id from jobbflow.saved_jobs where user_id=${uid} union select job_id from jobbflow.applications where user_id=${uid})
+        order by m.score desc nulls last, j.published_at desc limit 150`,
     sql`select job_id from jobbflow.saved_jobs where user_id=${uid}`,
     sql`select job_id from jobbflow.dismissed_jobs where user_id=${uid}`,
     sql`select a.*,d.cv_version_id,v.content,v.reviewed_at from jobbflow.applications a left join jobbflow.application_documents d on d.application_id=a.id and d.user_id=a.user_id and d.kind='tailored_cv' left join jobbflow.cv_versions v on v.id=d.cv_version_id and v.user_id=a.user_id where a.user_id=${uid} order by a.updated_at desc limit 200`,
@@ -91,14 +109,21 @@ export async function loadWorkspace(): Promise<WorkspaceData> {
       })),
       preferences: prefs,
     },
-    jobs: jobs.map((j) => ({
-      ...jobFromRow(j),
-      score: null,
-      coverage: 0,
-      matchKind: "retrieved" as const,
-      reasons: retrievalReasons(jobFromRow(j), prefs),
-      gaps: [],
-    })),
+    jobs: jobs.map((j) => {
+      const job = jobFromRow(j);
+      const analysed = j.score !== null || j.summary !== null;
+      const reasons: string[] = Array.isArray(j.match_reasons) ? j.match_reasons : [];
+      return {
+        ...job,
+        score: j.score ?? null,
+        coverage: j.coverage ?? 0,
+        matchKind: analysed ? ("analysed" as const) : ("retrieved" as const),
+        // A retrieval reason explains why the ad showed up; an analysed one
+        // explains why it fits. Never both, so the two cannot be confused.
+        reasons: analysed && reasons.length ? reasons : retrievalReasons(job, prefs),
+        gaps: Array.isArray(j.gaps) ? (j.gaps as string[]) : [],
+      };
+    }),
     saved: saved.map((j) => j.job_id),
     dismissed: dismissed.map((j) => j.job_id),
     applications: apps.map((a) => ({
@@ -152,45 +177,103 @@ function retrievalReasons(j: Job, p: typeof emptyPreferences) {
 }
 export async function searchForUser(
   uid: string,
-  input: { query: string; preferences: typeof emptyPreferences },
+  input: { query: string; profile: WorkspaceData["profile"] },
 ) {
   const sql = database();
+  const preferences = input.profile.preferences;
   const result = await retrieve({
     query: input.query,
-    occupationIds: input.preferences.occupationIds,
+    occupationIds: preferences.occupationIds,
     municipalityIds: [],
   });
   if (result.sources.every((s) => s.status === "unavailable"))
     throw new Error("SOURCES_UNAVAILABLE");
-  const unique = deduplicate(result.jobs)
-    .jobs.filter((j) => filterJob(j, input.preferences).eligible)
-    .slice(0, 100);
+
+  // The model is only ever shown what survives deduplication, the candidate's
+  // own deterministic filters and the ranking — never the raw feed.
+  const confirmedFacts = input.profile.facts.filter((f) => f.confirmed);
+  const candidate = CandidateSchema.parse({
+    id: uid,
+    version: input.profile.version,
+    confirmedAt: new Date().toISOString(),
+    facts: confirmedFacts,
+    preferences,
+  });
+  const plan = planSearch({
+    retrieved: result.jobs,
+    candidate,
+    sources: result.sources,
+  });
+
+  const retained = [...plan.analyse, ...plan.retrievedOnly];
   const rows: WorkspaceJob[] = [];
+  const analyseIds = new Set(plan.analyse.map((job) => job.id));
+  const toAnalyse: Job[] = [];
   await sql.begin(async (tx) => {
     const [p] =
       await tx`select version from jobbflow.profiles where user_id=${uid} and state='active' for update`;
     if (!p) throw new Error("ACCOUNT_NOT_ACTIVE");
-    for (const j of unique) {
+    for (const j of retained) {
       const [saved] =
         await tx`insert into jobbflow.jobs(source_id,external_id,title,employer_label,canonical_url,source_url,location,municipality_id,occupation_ids,employment_type,work_style,published_at,deadline,removed_at,description,description_completeness,fetched_at)
       values(${j.source},${j.externalId},${j.title},${j.employer},${j.canonicalUrl},${j.sourceUrl},${j.location},${j.municipalityId},${tx.array(j.occupationIds)},${j.employment},${j.workStyle},${j.publishedAt},${j.deadline},null,${j.description},${j.descriptionCompleteness},now())
       on conflict(source_id,external_id) do update set title=excluded.title,employer_label=excluded.employer_label,description=excluded.description,source_url=excluded.source_url,location=excluded.location,work_style=excluded.work_style,deadline=excluded.deadline,removed_at=null,fetched_at=now() returning id`;
       await tx`insert into jobbflow.job_matches(user_id,job_id,profile_version,method_version,score,coverage,summary) values(${uid},${saved.id},${p.version},'retrieval-v1',null,0,'Sökresultat, inte en djupanalys') on conflict do nothing`;
+      // Stored ids, not upstream ids: the analysis and everything after it
+      // refer to rows in this database.
+      const stored = { ...j, id: saved.id };
+      if (analyseIds.has(j.id)) toAnalyse.push(stored);
       rows.push({
-        ...j,
-        id: saved.id,
+        ...stored,
         score: null,
         coverage: 0,
         matchKind: "retrieved",
-        reasons: retrievalReasons(j, input.preferences),
+        reasons: retrievalReasons(j, preferences),
         gaps: [],
       });
     }
-    await tx`insert into jobbflow.search_runs(id,user_id,retrieved,retained,source_status) values(${randomUUID()},${uid},${result.jobs.length},${rows.length},${tx.json(result.sources)})`;
   });
+
+  // Analysis runs outside the write transaction: it makes network calls, and
+  // holding a row lock across them would block the candidate's other actions.
+  const metrics: ModelMetric[] = [];
+  let analysed = 0;
+  let quotaExhausted = false;
+  let jobs = rows;
+  const key = process.env.META_MODEL_API_KEY;
+  if (key && toAnalyse.length && input.profile.confirmed && confirmedFacts.length) {
+    const provider = new MuseProvider({ key, observe: (m) => metrics.push(m) });
+    try {
+      const outcome = await analyseJobs({
+        userId: uid,
+        candidate,
+        profileVersion: input.profile.version,
+        jobs: toAnalyse,
+        provider,
+        metrics,
+      });
+      jobs = withAnalysis(rows, outcome);
+      analysed = outcome.analysed.length;
+      quotaExhausted = outcome.quotaExhausted;
+    } finally {
+      for (const m of metrics)
+        await sql`insert into jobbflow.model_usage(operation,model,input_tokens,cached_tokens,output_tokens,latency_ms,success,estimated_usd) values(${m.operation},${m.model},${m.inputTokens},${m.cachedTokens},${m.outputTokens},${m.latencyMs},${m.success},${m.estimatedUsd})`;
+    }
+  }
+
+  // Analysed jobs first, then the rest by the ranking the pipeline produced.
+  jobs = [...jobs].sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
+  await sql`insert into jobbflow.search_runs(id,user_id,retrieved,retained,analysed,analysis_skipped,source_status) values(${randomUUID()},${uid},${result.jobs.length},${rows.length},${analysed},${Math.max(0, rows.length - analysed)},${sql.json(result.sources)})`;
   return {
-    jobs: rows,
+    jobs,
     sources: result.sources,
     lastSearchAt: new Date().toISOString(),
+    analysis: {
+      analysed,
+      budget: ANALYSIS_BUDGET_PER_SEARCH,
+      retained: rows.length,
+      quotaExhausted,
+      partial: plan.partial,
+    },
   };
 }

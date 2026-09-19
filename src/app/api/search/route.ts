@@ -3,7 +3,7 @@ import { requireUser } from "@/server/supabase";
 import { mutationGuard, errorResponse, readJson } from "@/server/request";
 import { rateLimit } from "@/server/limits";
 import { loadWorkspace, searchForUser } from "@/server/workspace";
-export const maxDuration = 30;
+export const maxDuration = 60;
 export async function POST(req: Request) {
   try {
     mutationGuard(req);
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     const data = await loadWorkspace();
     const result = await searchForUser(user.id, {
       query: query || data.profile.preferences.roles.join(" "),
-      preferences: data.profile.preferences,
+      profile: data.profile,
     });
     return Response.json(result, {
       headers: { "Cache-Control": "private, no-store" },
