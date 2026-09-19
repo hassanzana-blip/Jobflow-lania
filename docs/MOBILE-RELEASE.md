@@ -24,11 +24,13 @@ Unzoned upstream date-times are normalized as Europe/Stockholm civil time; the U
 
 - Native production build and TypeScript pass.
 - Static Netlify preview export passes.
-- 28 tests pass, including migrations executed in PGlite/PostgreSQL, two-user RLS, denied paid-plan tampering, private storage metadata, quota ceiling, cascading deletion, model schema failures, source normalization and multi-page Swedish PDF.
+- 36 tests pass, including migrations executed in PGlite/PostgreSQL, two-user RLS, denied paid-plan tampering, private storage metadata, quota ceiling, cascading deletion, model schema failures, source normalization and multi-page Swedish PDF.
 - Tests exposed and fixed an invalid reserved SQL column (`current_role` became `is_current`) and a variable-font PDF failure (static Inter font now embedded).
 - Live JobSearch, JobAd Links and taxonomy adapter smoke checks pass.
-- Playwright viewport, app flow, keyboard dialog and axe tests are authored. They have NOT run here: controlled browser navigation to the supervised local preview is blocked with `ERR_BLOCKED_BY_CLIENT`.
-- No Lighthouse score, visual parity or phone-browser pass is claimed.
+- Playwright now runs: 13 of 13 pass in real Chromium, covering 320/360/375/390/393/430/1440px, the save/dismiss/undo/prepare/review flow, keyboard dismissal of the dialog, axe WCAG 2.2 AA on `/`, `/produktvisning`, `/kom-igang` and `/lankfel`, the sign-in error banner and the URL-backed public job search.
+- The suite runs against `next build && next start`, not `next dev`. In a sandboxed runner the dev server's HMR socket is unreachable, the page is server-rendered but never hydrates, and every interaction silently does nothing — which is why this suite had never run before. A production server is also what Netlify serves.
+- That first real run found a defect automated checks had missed: `<small>` hint text inside a wrapping `<label>` became part of the control's accessible name, so the tracker's status select announced as "Status Välj Skickad när du själv har lämnat in ansökan hos arbetsgivaren." The hints for status, CV facts and roles now sit in `aria-describedby`.
+- No Lighthouse score, visual parity or physical phone-browser pass is claimed. Automated axe is not a substitute for a screen-reader review.
 
 ## External connections still needed
 

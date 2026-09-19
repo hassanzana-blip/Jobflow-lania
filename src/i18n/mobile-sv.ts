@@ -88,7 +88,8 @@ export const mobileSv = {
     "Öppna ett jobb och välj Förbered ansökan för att komma igång.",
   browse: "Upptäck jobb",
   noLive: "Inga jobb har hämtats ännu.",
-  partial: "En jobbkällas svar saknas. Resultaten är därför inte heltäckande.",
+  partial:
+    "Svar saknas från en jobbkälla. Resultaten kan därför vara ofullständiga.",
   lastSearch: "Senaste sökning",
   privacyLine: "Du väljer. JobbFlow förbereder.",
   privacyBody: "Ingenting skickas utan ditt godkännande.",

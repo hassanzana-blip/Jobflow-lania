@@ -30,7 +30,7 @@ Rebuild the static bundle with `npm ci` and `npm run build:netlify-preview`; upl
 
 ## Validation and remaining gates
 
-Native and static builds and 28 tests pass. Real JobSearch, JobAd Links and taxonomy adapter smoke checks pass. Controlled browser preview was blocked, so rendered mobile/desktop, keyboard, axe and Lighthouse results remain unverified. No Netlify deployment has been made in your account.
+Native and static builds and 36 tests pass. Real JobSearch, JobAd Links and taxonomy adapter smoke checks pass. The Playwright suite now runs: 13 of 13 pass, covering the mobile widths, keyboard dismissal and axe WCAG 2.2 AA. Lighthouse, visual parity and a physical phone pass remain unverified.
 
 Official references checked 19 September 2026:
 - https://docs.netlify.com/build/frameworks/framework-setup-guides/nextjs/overview/

@@ -213,9 +213,11 @@ export function ProfileWizard({
                     maxLength={150}
                   />
                 </label>
-                <label className="jf-field">
-                  {t.facts}
+                <div className="jf-field">
+                  <label htmlFor="profile-facts">{t.facts}</label>
                   <textarea
+                    id="profile-facts"
+                    aria-describedby="profile-facts-hint"
                     rows={7}
                     value={facts}
                     onChange={(e) => setFacts(e.target.value)}
@@ -223,22 +225,24 @@ export function ProfileWizard({
                     maxLength={15000}
                     placeholder={t.factsPlaceholder}
                   />
-                  <small>{t.factsHint}</small>
-                </label>
+                  <small id="profile-facts-hint">{t.factsHint}</small>
+                </div>
               </>
             )}
             {step === 1 && (
               <>
-                <label className="jf-field">
-                  {t.roles}
+                <div className="jf-field">
+                  <label htmlFor="profile-roles">{t.roles}</label>
                   <input
+                    id="profile-roles"
+                    aria-describedby="profile-roles-hint"
                     required
                     value={roles}
                     onChange={(e) => setRoles(e.target.value)}
                     maxLength={800}
                   />
-                  <small>{t.rolesHint}</small>
-                </label>
+                  <small id="profile-roles-hint">{t.rolesHint}</small>
+                </div>
                 {mode === "live" && (
                   <div className="jf-field">
                     <span>{t.occupationGroup}</span>

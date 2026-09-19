@@ -15,6 +15,11 @@
   --color-accent: #006b60;
   --color-accent-hover: #00574f;
   --color-accent-text: #fff;
+  /* Accent as *text or icon* on a light surface. Kept separate from
+     --color-accent because the accent may be repainted to a colour that only
+     works as a background; see the override block at the end of this file. */
+  --color-accent-ink: #006b60;
+  --color-danger: #9a302a;
   --color-tint: #e6f3f0;
   --color-border: #c4cece;
   --color-focus: #006b60;
@@ -137,7 +142,7 @@ p {
   align-items: baseline;
 }
 .wordmark span {
-  color: var(--color-accent);
+  color: var(--color-accent-ink);
 }
 .desktop-nav {
   display: flex;
@@ -154,7 +159,7 @@ p {
 }
 .desktop-nav a:hover,
 .text-link:hover {
-  color: var(--color-accent);
+  color: var(--color-accent-ink);
 }
 .nav-actions {
   display: flex;
@@ -185,7 +190,7 @@ p {
 }
 .button.secondary {
   background: var(--color-tint);
-  color: var(--color-accent);
+  color: var(--color-accent-ink);
 }
 .button.secondary:hover {
   background: #d5eae4;
@@ -217,11 +222,11 @@ p {
   letter-spacing: 0.11em;
   font-size: 0.75rem;
   font-weight: 650;
-  color: var(--color-accent);
+  color: var(--color-accent-ink);
   margin-bottom: 24px;
 }
 .hero h1 span {
-  color: var(--color-accent);
+  color: var(--color-accent-ink);
 }
 .lead {
   font-size: 1.125rem;
@@ -320,7 +325,7 @@ p {
   margin-top: 24px;
   font-weight: 600;
   font-size: 0.875rem;
-  color: var(--color-accent);
+  color: var(--color-accent-ink);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -389,7 +394,7 @@ p {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--color-accent);
+  color: var(--color-accent-ink);
   margin-bottom: 32px;
   font-size: 0.875rem;
 }
@@ -427,7 +432,7 @@ p {
 .trust-items svg {
   width: 20px;
   flex-shrink: 0;
-  color: var(--color-accent);
+  color: var(--color-accent-ink);
   margin-top: 4px;
 }
 .trust-items h3 {
@@ -638,13 +643,23 @@ p {
   font-weight: 400;
 }
 .checkbox input {
-  width: 20px;
-  height: 20px;
+  /* WCAG 2.5.8 minimum target size. */
+  width: 24px;
+  height: 24px;
   accent-color: var(--color-accent);
   flex-shrink: 0;
 }
 .form-status {
   padding: 12px 0;
+}
+/* The error and status regions stay mounted so screen readers keep watching
+   them; an empty one must not leave a gap above the submit button. */
+.form-status:empty {
+  display: none;
+}
+.form-status-error {
+  color: var(--color-danger);
+  font-weight: 600;
 }
 .form-hint {
   font-size: 0.8125rem;
@@ -656,7 +671,16 @@ p {
 }
 .auth-switch a {
   text-decoration: underline;
-  color: var(--color-accent);
+  /* The lime accent is a background colour; as text on light backgrounds it
+     fails WCAG 1.4.3 (measured 1.28:1). Use ink, with the focus violet on
+     hover, and pad to a 24px target (WCAG 2.5.8). */
+  color: var(--color-text);
+  display: inline-block;
+  padding: 4px 2px;
+  min-height: 24px;
+}
+.auth-switch a:hover {
+  color: var(--color-focus);
 }
 .legal {
   max-width: 820px;
@@ -698,7 +722,7 @@ p {
 }
 .app-sidebar a[aria-current="page"] {
   background: var(--color-tint);
-  color: var(--color-accent);
+  color: var(--color-accent-ink);
   font-weight: 600;
 }
 .app-content {
@@ -792,7 +816,7 @@ p {
   flex-wrap: wrap;
 }
 .inline-links a {
-  color: var(--color-accent);
+  color: var(--color-accent-ink);
   text-decoration: underline;
 }
 .status-message {
@@ -1125,6 +1149,11 @@ p {
   --color-accent: #bcf500;
   --color-accent-hover: #a8de00;
   --color-accent-text: #111110;
+  /* Lime measures 1.28:1 on this canvas — unusable as text or as a meaningful
+     icon. This dark olive keeps the accent family at 10:1 (WCAG 1.4.3 AA and
+     1.4.11 for icons). */
+  --color-accent-ink: #324800;
+  --color-danger: #a62121;
   --color-tint: #f3fbdc;
   --color-border: #deded9;
   --color-focus: #6424eb;
