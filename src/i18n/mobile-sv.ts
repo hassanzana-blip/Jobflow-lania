@@ -227,4 +227,47 @@ export const mobileSv = {
   ],
   exampleRoles: ["HR Business Partner", "People Partner", "HR-specialist"],
   exampleOtherLocation: "Göteborg",
+  cv: {
+    title: "Börja med ditt CV",
+    body: "PDF eller DOCX, högst 10 MB. Vi läser dokumentet och föreslår uppgifter — du granskar och bekräftar innan något sparas.",
+    choose: "Välj fil",
+    uploading: "Laddar upp och läser dokumentet…",
+    reviewTitle: "Stämmer det här?",
+    reviewBody:
+      "Vi har föreslagit uppgifter från ditt dokument. Rätta det som blivit fel, kryssa i det du vill behålla och bekräfta. Inget används förrän du har bekräftat.",
+    grounded: "Hittad i ditt dokument",
+    ungrounded: "Osäker — hittades inte i dokumentet",
+    ungroundedHelp:
+      "Vi kunde inte hitta den här formuleringen i ditt dokument. Kontrollera uppgiften innan du behåller den.",
+    quoteLabel: "Ur ditt dokument",
+    include: "Behåll uppgiften",
+    editLabel: "Redigera uppgiften",
+    unknownsTitle: "Sådant dokumentet inte svarar på",
+    confirm: "Bekräfta uppgifterna",
+    confirmHint: "Du kan ändra allt senare i din profil.",
+    truncated:
+      "Dokumentet är långt och lästes bara delvis. Kontrollera att inget viktigt saknas.",
+    nothingProposed:
+      "Vi kunde läsa dokumentet men har inga förslag att visa. Fyll i din profil manuellt.",
+    noModel:
+      "Dokumentläsningen är inte ansluten till någon modell ännu, så inga uppgifter föreslås. Dokumentet är sparat och du kan fylla i profilen manuellt.",
+    quarantined:
+      "Dokumentet är sparat men kan inte laddas ned igen förrän virusskanning är på plats.",
+    replace: "Ladda upp ett annat dokument",
+    download: "Öppna mitt dokument",
+    parseFailed: {
+      ENCRYPTED:
+        "Dokumentet är lösenordsskyddat. Spara en kopia utan lösenord och ladda upp den.",
+      NO_TEXT_LAYER:
+        "Dokumentet innehåller ingen text som går att markera — det ser ut att vara en bild eller en inskannad sida. Ladda upp en PDF eller DOCX med riktig text.",
+      CORRUPT:
+        "Filen gick inte att läsa. Den kan vara skadad eller ofullständigt uppladdad.",
+      UNSAFE_ARCHIVE:
+        "Filen är uppbyggd på ett sätt vi inte öppnar av säkerhetsskäl. Spara om den från Word och försök igen.",
+      TIMEOUT:
+        "Det tog för lång tid att läsa dokumentet. Försök igen, eller ladda upp en mindre fil.",
+      PARSER_FAILED:
+        "Vi kunde inte läsa dokumentet. Försök igen, eller fyll i din profil manuellt.",
+    },
+  },
 } as const;

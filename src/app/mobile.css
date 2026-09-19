@@ -1349,3 +1349,96 @@
     transition: none !important;
   }
 }
+
+/* CV upload and the review a candidate completes before anything is saved. */
+.jf-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.jf-upload-input input[type="file"] {
+  /* Hidden from sight, not from the keyboard: the styled span is the label, so
+     focus and activation still reach the real control. */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.jf-upload-input > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+.jf-upload-input input[type="file"]:focus-visible + span {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.jf-status:empty {
+  display: none;
+}
+.jf-review {
+  display: grid;
+  gap: 14px;
+  border-top: 1px solid #b9cab8;
+  padding-top: 18px;
+}
+.jf-review h3 {
+  font-size: 19px;
+}
+.jf-review h4 {
+  font-size: 15px;
+  margin-top: 4px;
+}
+.jf-review p {
+  font-size: 14px;
+}
+.jf-review-list,
+.jf-review-unknowns {
+  display: grid;
+  gap: 14px;
+  list-style: none;
+}
+.jf-review-list > li {
+  background: var(--mobile-white);
+  border-radius: 14px;
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+  border-left: 4px solid #6f8f6d;
+}
+/* An unverified proposal is marked in text as well as colour: the badge says
+   so, so the distinction does not depend on seeing the border. */
+.jf-review-list > li.jf-uncertain {
+  border-left-color: #a15c00;
+  background: #fdf6ec;
+}
+.jf-review-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.jf-uncertain .jf-review-badge {
+  color: #7a4500;
+}
+.jf-review-quote {
+  font-size: 13px;
+  color: var(--mobile-muted);
+}
+.jf-review-unknowns > li {
+  font-size: 14px;
+  color: var(--mobile-muted);
+  padding-left: 14px;
+  border-left: 2px solid var(--mobile-border);
+}

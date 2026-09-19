@@ -26,7 +26,7 @@ Use the migration in supabase/migrations. docs/legacy-migrations is archival onl
 | Resend | RESEND_API_KEY, RESEND_FROM; verified sender domain; Supabase SMTP settings | Transactional account email and future notifications. |
 | Stripe | STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, STRIPE_PLUS_PRICE_ID, STRIPE_PRO_PRICE_ID, STRIPE_AGENT_PRICE_ID | Test mode first; billing stays disabled until lifecycle tests pass. |
 | Redis + worker hosting | REDIS_URL; persistent Node worker runtime | Daily searches, notification delivery and deletion jobs. Engineering still incomplete. |
-| Document scanner | CLAMAV_HOST, CLAMAV_PORT; isolated parsing runtime | Secure PDF/DOCX processing; not yet implemented. |
+| Document scanner | CLAMAV_HOST, CLAMAV_PORT | Isolated parsing is implemented and runs without it. The scanner itself is still missing, so uploads stay quarantined and cannot be downloaded again. |
 | PostHog | NEXT_PUBLIC_POSTHOG_KEY, NEXT_PUBLIC_POSTHOG_HOST | Later, consent-based analytics with no candidate content. |
 | Browser assistance | BROWSER_USE_API_KEY and permitted provider/executor | Later, explicit per-application approval; disabled. |
 | JobSearch, JobAd Links, JobTech Taxonomy | Public endpoints configured | No secret keys required by current adapters. |
@@ -60,6 +60,34 @@ Also turn **click and open tracking off** for transactional mail in Resend.
 Rewritten links (`r.us-east-1.awstrack.me`) are followed by link scanners and
 mail-client prefetching, which burns the single-use token before the candidate
 clicks it.
+
+## CV upload, isolated parsing and scanning
+
+`supabase/migrations/20260919160000_cv_upload_and_extraction.sql` adds the parse
+state on `documents`, the `document_extractions` review table and the provenance
+columns on `candidate_facts`. It is additive and does not touch the public
+schema. Apply it before enabling uploads.
+
+Uploading turns on by itself once `SUPABASE_SERVICE_ROLE_KEY` and
+`NEXT_PUBLIC_SUPABASE_URL` are set — the private bucket needs the service role,
+and the client never sees it. Without them the profile page says the feature is
+not connected rather than offering a control that fails.
+
+Parsing runs in a separate process (`scripts/parse-document.mjs`), spawned with
+an environment built from scratch, a 256 MB heap cap and a 20 second kill. The
+service-role key, `DATABASE_URL` and `META_MODEL_API_KEY` are therefore not
+reachable from the code that opens a stranger's file.
+
+**Malware scanning is not configured anywhere.** `CLAMAV_HOST` is empty, so every
+upload is stored with `scan_state='quarantined'` and `GET /api/documents/url`
+answers 409 for it. That is deliberate: a document that has not been positively
+scanned is never served back out. The clamd INSTREAM client is written and its
+protocol is covered by tests, so setting `CLAMAV_HOST` and `CLAMAV_PORT` is all
+that is needed once a daemon exists. "Scanner unavailable" never counts as clean.
+
+Function runtime: parsing spawns a child process and allows up to 60 seconds, so
+the upload route needs a runtime that permits both. On Netlify this is a
+standard Node function, not an edge one.
 
 ## Remaining work
 Live signup/confirmation/login/logout/recovery; CV upload/scanning/extraction; contextual matching; daily ingest persistence (INGEST_PERSISTENCE_NOT_IMPLEMENTED); email outbox; billing lifecycle; browser assistance; admin and privacy verification; all specified mobile widths, visual/keyboard/axe E2E and production deployment.
