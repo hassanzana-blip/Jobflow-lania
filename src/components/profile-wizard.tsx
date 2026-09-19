@@ -8,7 +8,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { mobileSv as t } from "@/i18n/mobile-sv";
-import type { WorkspaceProfile } from "@/core/workspace";
+import { CvUpload, type ConfirmedExtraction } from "./cv-upload";
+import type { WorkspaceProfile, WorkspaceData } from "@/core/workspace";
 const list = (s: string) => [
   ...new Set(
     s
@@ -20,14 +21,18 @@ const list = (s: string) => [
 export function ProfileWizard({
   profile,
   mode,
+  capabilities,
   onSave,
   onSearch,
 }: {
   profile: WorkspaceProfile;
   mode: "live" | "demo" | "guest";
-  onSave: (p: WorkspaceProfile) => Promise<void>;
+  capabilities: WorkspaceData["capabilities"];
+  /** `extractionId` ties the saved facts back to the CV they were read from. */
+  onSave: (p: WorkspaceProfile, extractionId?: string) => Promise<void>;
   onSearch: () => void;
 }) {
+  const [extractionId, setExtractionId] = useState<string | undefined>();
   const [occupationIds, setOccupationIds] = useState(
     profile.preferences.occupationIds,
   );
@@ -103,7 +108,8 @@ export function ProfileWizard({
     setBusy(true);
     setError("");
     try {
-      await onSave({
+      await onSave(
+        {
         ...profile,
         displayName: name.trim(),
         location: city.trim(),
@@ -132,7 +138,9 @@ export function ProfileWizard({
           willingToRelocate: relocate,
           employment: employment ? [employment] : [],
         },
-      });
+        },
+        extractionId,
+      );
       setSaved(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : t.error);
@@ -143,13 +151,24 @@ export function ProfileWizard({
   return (
     <div className="jf-profile-grid">
       <aside className="jf-profile-aside">
-        <div className="jf-upload-card">
-          <FileText size={30} strokeWidth={1.4} />
-          <h2>{t.uploadTitle}</h2>
-          <p>{t.uploadBody}</p>
-          <span>{t.uploadUnavailable}</span>
-          <p>{t.manualEntry}</p>
-        </div>
+        <CvUpload
+          enabled={mode === "live" && capabilities.cvUpload}
+          aiConfigured={capabilities.ai}
+          onConfirm={(result: ConfirmedExtraction) => {
+            // The review fills the form in; the candidate still has to walk
+            // the remaining steps and tick the final confirmation, so a CV can
+            // never confirm a profile on its own.
+            setExtractionId(result.extractionId);
+            if (result.name && !name.trim()) setName(result.name);
+            if (result.location && !city.trim()) setCity(result.location);
+            setFacts((current) =>
+              [current.trim(), ...result.facts.map((f) => f.text)]
+                .filter(Boolean)
+                .join("\n"),
+            );
+            setStep(0);
+          }}
+        />
         <div className="jf-profile-trust">
           <ShieldCheck size={24} />
           <p>{t.privacyBody}</p>

@@ -157,6 +157,16 @@ export const sv = {
     sources:
       "Jobbkällorna svarar inte just nu. Dina sparade jobb finns kvar.",
     unauthenticated: "Logga in för att fortsätta.",
+    fileTooLarge: "Filen är för stor. Högst 10 MB.",
+    fileType: "Ladda upp en PDF- eller DOCX-fil.",
+    fileRejected:
+      "Filen stoppades av virusskanningen och har inte sparats.",
+    documentQuarantined:
+      "Dokumentet kan inte hämtas förrän det har skannats.",
+    storageUnavailable:
+      "Dokumentlagringen svarar inte just nu. Försök igen om en stund.",
+    profileUnconfirmed:
+      "Bekräfta din profil innan du går vidare.",
     passwordRequired: "Fyll i ett lösenord på minst 12 tecken.",
     consentRequired:
       "Välj ett lösenord på minst 12 tecken och godkänn informationen om personuppgifter.",

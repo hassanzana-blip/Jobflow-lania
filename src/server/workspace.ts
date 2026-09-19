@@ -118,7 +118,13 @@ export async function loadWorkspace(): Promise<WorkspaceData> {
     notifications: settings[0]?.new_matches ?? false,
     capabilities: {
       ai: Boolean(process.env.META_MODEL_API_KEY),
-      cvUpload: false,
+      // Uploading needs the private bucket, which needs the service role.
+      // Parsing and the review work without a model key; only the proposals
+      // depend on it, and the UI says so rather than pretending.
+      cvUpload: Boolean(
+        process.env.SUPABASE_SERVICE_ROLE_KEY &&
+          process.env.NEXT_PUBLIC_SUPABASE_URL,
+      ),
       billing: process.env.ENABLE_BILLING === "true",
       deletion: process.env.ENABLE_ACCOUNT_DELETION === "true",
     },

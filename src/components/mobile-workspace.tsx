@@ -304,7 +304,7 @@ export function MobileWorkspace({
       setApplication(next.id);
     });
   }
-  async function saveProfile(profile: WorkspaceProfile) {
+  async function saveProfile(profile: WorkspaceProfile, extractionId?: string) {
     if (mode === "guest") throw new Error(t.accountRequired);
     let version = profile.version;
     if (mode === "live") {
@@ -315,6 +315,9 @@ export function MobileWorkspace({
         confirmed: true,
         facts: profile.facts,
         preferences: profile.preferences,
+        // Present only when these facts came from reviewing a CV; the server
+        // uses it to recover each quote it verified against that document.
+        ...(extractionId ? { extractionId } : {}),
       });
       version = result.version;
     }
@@ -653,6 +656,7 @@ export function MobileWorkspace({
             <ProfileWizard
               profile={data.profile}
               mode={mode}
+              capabilities={data.capabilities}
               onSave={saveProfile}
               onSearch={() => {
                 changeView("home");

@@ -22,9 +22,9 @@ npm run dev
 - `/hitta-jobb` — real public JobSearch and JobAd Links search, no account needed. The query and work-style filter live in the URL (`?q=…&arbetsform=…`), so a result list can be shared and reloaded.
 - `/produktvisning` — interactive mobile product example, clearly fictional. No real applications or accounts; changes live only in memory.
 - `/kom-igang` and `/logga-in` — real Supabase Auth when configured.
-- `/app` — authenticated mobile workspace with database-backed profile, saved jobs and application tracker.
+- `/app` — authenticated mobile workspace with database-backed profile, saved jobs and application tracker. A CV can be uploaded as PDF or DOCX; it is stored privately, parsed in a separate process with no credentials, and every fact proposed from it is marked with whether its quote was actually found in the document. Nothing becomes profile data until the candidate confirms it.
 
-`npm test` runs 36 core, contract, auth, PDF and PostgreSQL migration tests. `npm run build` builds the native web app. `npm run test:e2e` runs 13 Playwright/axe checks; it builds and starts a production server first, because `next dev` does not hydrate in sandboxed runners and every interaction then silently does nothing. `npm run check:live` verifies that a deployment's own `DATABASE_URL` actually connects, that the migration is applied and that RLS is on — it prints variable names, hosts and counts, never a secret.
+`npm test` runs 49 core, contract, auth, document, PDF and PostgreSQL migration tests. `npm run build` builds the native web app. `npm run test:e2e` runs 13 Playwright/axe checks; it builds and starts a production server first, because `next dev` does not hydrate in sandboxed runners and every interaction then silently does nothing. `npm run check:live` verifies that a deployment's own `DATABASE_URL` actually connects, that the migration is applied and that RLS is on — it prints variable names, hosts and counts, never a secret.
 
 ## Netlify
 

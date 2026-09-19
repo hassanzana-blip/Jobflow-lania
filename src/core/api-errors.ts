@@ -41,6 +41,13 @@ const RESPONSES: Record<string, { status: number; message: string; field?: "emai
   UNAUTHENTICATED: { status: 401, message: sv.serverErrors.unauthenticated },
   ACCOUNT_NOT_ACTIVE: { status: 403, message: sv.serverErrors.unauthenticated },
   INVALID_ORIGIN: { status: 403, message: sv.serverErrors.generic },
+  INVALID_FILE_SIZE: { status: 413, message: sv.serverErrors.fileTooLarge },
+  INVALID_FILE_TYPE: { status: 415, message: sv.serverErrors.fileType },
+  FILE_REJECTED: { status: 422, message: sv.serverErrors.fileRejected },
+  DOCUMENT_QUARANTINED: { status: 409, message: sv.serverErrors.documentQuarantined },
+  STORAGE_UNAVAILABLE: { status: 503, message: sv.serverErrors.storageUnavailable },
+  PROFILE_UNCONFIRMED: { status: 409, message: sv.serverErrors.profileUnconfirmed },
+  BODY_REQUIRED: { status: 400, message: sv.serverErrors.fileType },
 };
 
 export function resolveError(error: unknown) {

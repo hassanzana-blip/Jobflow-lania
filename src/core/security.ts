@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 export function validateUpload(bytes: Uint8Array, mime: string, name: string) {
   if (!bytes.length || bytes.length > MAX_UPLOAD_BYTES)
@@ -20,6 +21,20 @@ export function validateUpload(bytes: Uint8Array, mime: string, name: string) {
     needsMalwareScan: true,
     needsArchiveValidation: docx,
   } as const;
+}
+/**
+ * The stored object name. It is derived, never taken from the upload: a
+ * candidate's filename can carry a path, another user's id, or simply their
+ * full name, and none of that belongs in a bucket key.
+ */
+export function objectKeyFor(userId: string, kind: "pdf" | "docx") {
+  return `${userId}/${randomUUID()}.${kind}`;
+}
+
+/** The display name, stripped of anything that is not a plain file name. */
+export function safeDisplayName(name: string) {
+  const base = name.split(/[\\/]/).pop() ?? "";
+  return base.replace(/[\u0000-\u001F\u007F]/g, "").slice(0, 150) || "cv";
 }
 export function assertSameOrigin(request: Request, baseUrl: string) {
   const origin = request.headers.get("origin");

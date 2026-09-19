@@ -18,8 +18,18 @@ export const ProfileInputSchema = z
     location: z.string().trim().max(150),
     expectedVersion: z.number().int().positive(),
     confirmed: z.literal(true),
-    facts: z.array(FactSchema).min(1).max(100),
+    facts: z
+      .array(
+        // `grounded` says the quote was verified against the uploaded document.
+        // The server re-derives it from the stored review, so a client claiming
+        // it changes nothing; it travels here only to keep the shape whole.
+        FactSchema.extend({ grounded: z.boolean().optional() }),
+      )
+      .min(1)
+      .max(100),
     preferences: PreferencesSchema,
+    /** Set when these facts came from reviewing a CV, so it can be closed. */
+    extractionId: z.uuid().optional(),
   })
   .strict();
 export const ApplicationUpdateSchema = z
