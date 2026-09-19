@@ -1,0 +1,31 @@
+{
+  "total": {
+    "value": 210
+  },
+  "hits": [
+    {
+      "id": "15d05d9508c3a87314f48ba96917c25d",
+      "headline": "HR Intern",
+      "brief": "Are you curious about what it is like to work with HR in a global, technology-driven organization? Would you like to gain valuable practical experience in both administration and operational HR work?",
+      "occupation_group": {
+        "label": "Personal- och HR-specialister",
+        "concept_id": "bjqk_F3A_5Hk"
+      },
+      "occupation_field": {
+        "label": "Administration, ekonomi, juridik",
+        "concept_id": "X82t_awd_Qyc"
+      },
+      "employer": {
+        "name": "Allgon AB"
+      },
+      "workplace_addresses": [],
+      "publication_date": "2026-09-18T00:00:00",
+      "source_links": [
+        {
+          "label": "arbetsformedlingen.se",
+          "url": "https://arbetsformedlingen.se/platsbanken/annonser/31495434"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,169 @@
+{
+  "total": {
+    "value": 1437
+  },
+  "positions": 1624,
+  "query_time_in_millis": 2,
+  "result_time_in_millis": 12,
+  "stats": [],
+  "freetext_concepts": {
+    "skill": [],
+    "occupation": [],
+    "trait": [],
+    "location": [],
+    "skill_must": [],
+    "occupation_must": [],
+    "trait_must": [],
+    "location_must": [],
+    "skill_must_not": [],
+    "occupation_must_not": [],
+    "trait_must_not": [],
+    "location_must_not": []
+  },
+  "hits": [
+    {
+      "relevance": 1.0,
+      "id": "31495434",
+      "external_id": null,
+      "original_id": null,
+      "label": [],
+      "webpage_url": "https://arbetsformedlingen.se/platsbanken/annonser/31495434",
+      "logo_url": null,
+      "headline": "HR Intern",
+      "application_deadline": "2026-10-09T23:59:59",
+      "number_of_vacancies": 1,
+      "description": {
+        "text": "Are you curious about what it is like to work with HR in a global, technology-driven organization? Would you like to gain valuable practical experience in both administration and operational HR work? Then this could be the opportunity for you!\nAbout the role\nAs an HR Intern at Allgon, you will become part of our HR team in Gothenburg and have the opportunity to work broadly across several HR areas. We are a small, dedicated team that works closely with the business. We are based at the head office in Gothenburg and support our Swedish units while also collaborating with the global organization. The position is part-time, approximately 2 days per week during the autumn semester of 2026.\nThe work will partly be adapted to our current needs, but typical tasks may include:\nSupporting recruitment processes, such as initial screening, reference checks, and candidate feedback\nOrganizing and structuring HR policy and governance documents\nContributing to Employer Branding activities and event planning\n\nWho are we looking for?\nWe believe that you:\nAre studying for a bachelor’s or master’s degree in human resources, HR, organization, or a similar field\nHave strong communication skills and find it easy to collaborate\nAre thorough, structured, and have high integrity\nEnjoy working with people and have a desire to contribute to development\nAre fluent in Swedish and English, both spoken and written\n\nMeritorious if you have:\nExperience with systems such as Teamtailor, Winningtemp, or other HR systems\nAn interest in the technology industry and experience from global organizations\n\nAbout Allgon\nAllgon is a Swedish company specializing in industrial radio control, with a strong track record in wireless technology innovation. Through our brands Tele Radio, Åkerströms and Sistematica, we have built a global presence, employing over 450 professionals and presence in 26 countries.\nWe offer an exciting work environment in a profitable and growing organization with a strong technical focus. Despite our global reach, we maintain the close-knit atmosphere of a smaller company, where every employee has a voice and can influence the projects they work on.\nAt Allgon, sustainability is a key priority—ecologically, socially, and financially. We are committed to attracting passionate individuals who share our vision of a safer, more efficient world through advanced wireless technology.\nLast application date is October 9th. We review applications on a rolling basis, so the position may be filled before last application date.\nWe look forward to your application! ⭐",
+        "text_formatted": "<p>Are you curious about what it is like to work with HR in a global, technology-driven organization? Would you like to gain valuable practical experience in both administration and operational HR work? Then this could be the opportunity for you!</p><p>About the role</p><p>As an HR Intern at Allgon, you will become part of our HR team in Gothenburg and have the opportunity to work broadly across several HR areas. We are a small, dedicated team that works closely with the business. We are based at the head office in Gothenburg and support our Swedish units while also collaborating with the global organization. The position is part-time, approximately 2 days per week during the autumn semester of 2026.</p><p>The work will partly be adapted to our current needs, but typical tasks may include:</p><ul><li>Supporting recruitment processes, such as initial screening, reference checks, and candidate feedback</li><li>Organizing and structuring HR policy and governance documents</li><li>Contributing to Employer Branding activities and event planning</li></ul><p>Who are we looking for?</p><p>We believe that you:</p><ul><li>Are studying for a bachelor’s or master’s degree in human resources, HR, organization, or a similar field</li><li>Have strong communication skills and find it easy to collaborate</li><li>Are thorough, structured, and have high integrity</li><li>Enjoy working with people and have a desire to contribute to development</li><li>Are fluent in Swedish and English, both spoken and written</li></ul><p>Meritorious if you have:</p><ul><li>Experience with systems such as Teamtailor, Winningtemp, or other HR systems</li><li>An interest in the technology industry and experience from global organizations</li></ul><p>About Allgon</p><p>Allgon is a Swedish company specializing in industrial radio control, with a strong track record in wireless technology innovation. Through our brands Tele Radio, Åkerströms and Sistematica, we have built a global presence, employing over 450 professionals and presence in 26 countries.</p><p>We offer an exciting work environment in a profitable and growing organization with a strong technical focus. Despite our global reach, we maintain the close-knit atmosphere of a smaller company, where every employee has a voice and can influence the projects they work on.</p><p>At Allgon, sustainability is a key priority—ecologically, socially, and financially. We are committed to attracting passionate individuals who share our vision of a safer, more efficient world through advanced wireless technology.</p><p>Last application date is October 9th. We review applications on a rolling basis, so the position may be filled before last application date.</p><p>We look forward to your application! ⭐</p>",
+        "company_information": null,
+        "needs": null,
+        "requirements": null,
+        "conditions": null
+      },
+      "employment_type": {
+        "concept_id": "sTu5_NBQ_udq",
+        "label": "Tidsbegränsad anställning",
+        "legacy_ams_taxonomy_id": null
+      },
+      "salary_type": {
+        "concept_id": "oG8G_9cW_nRf",
+        "label": "Fast månads- vecko- eller timlön",
+        "legacy_ams_taxonomy_id": "1"
+      },
+      "salary_description": null,
+      "duration": {
+        "concept_id": "Xj7x_7yZ_jEn",
+        "label": "3 månader – upp till 6 månader",
+        "legacy_ams_taxonomy_id": "3"
+      },
+      "working_hours_type": {
+        "concept_id": "947z_JGS_Uk2",
+        "label": "Deltid",
+        "legacy_ams_taxonomy_id": "2"
+      },
+      "scope_of_work": {
+        "min": 0,
+        "max": 100
+      },
+      "access": null,
+      "employer": {
+        "phone_number": null,
+        "email": null,
+        "url": "https://allgon.com/sv/",
+        "organization_number": "5563879955",
+        "name": "Allgon AB",
+        "workplace": "Allgon AB"
+      },
+      "application_details": {
+        "information": null,
+        "reference": null,
+        "email": null,
+        "via_af": false,
+        "url": "https://career.allgon.com/jobs/8386848-hr-intern",
+        "other": null
+      },
+      "experience_required": true,
+      "access_to_own_car": false,
+      "driving_license_required": false,
+      "driving_license": null,
+      "occupation": {
+        "concept_id": "ofiS_5F2_YmV",
+        "label": "HR-assistent",
+        "legacy_ams_taxonomy_id": "7095"
+      },
+      "occupation_group": {
+        "concept_id": "L7eh_ihX_vM5",
+        "label": "Löne- och personaladministratörer",
+        "legacy_ams_taxonomy_id": "4112"
+      },
+      "occupation_field": {
+        "concept_id": "X82t_awd_Qyc",
+        "label": "Administration, ekonomi, juridik",
+        "legacy_ams_taxonomy_id": "1"
+      },
+      "workplace_model": {
+        "concept_id": "ZxwM_gtz_n61",
+        "label": "Arbete på plats"
+      },
+      "workplace_address": {
+        "municipality": "Göteborg",
+        "municipality_code": "1480",
+        "municipality_concept_id": "PVZL_BQT_XtL",
+        "region": "Västra Götalands län",
+        "region_code": "14",
+        "region_concept_id": "zdoY_6u5_Krt",
+        "country": "Sverige",
+        "country_code": "199",
+        "country_concept_id": "i46j_HmG_v64",
+        "street_address": "August Barks Gata 30 A",
+        "postcode": "42132",
+        "city": "Västra Frölunda",
+        "coordinates": [
+          11.9464343738448,
+          57.6492225511355
+        ]
+      },
+      "workplace_addresses": [
+        {
+          "municipality": "Göteborg",
+          "municipality_code": "1480",
+          "municipality_concept_id": "PVZL_BQT_XtL",
+          "region": "Västra Götalands län",
+          "region_code": "14",
+          "region_concept_id": "zdoY_6u5_Krt",
+          "country": "Sverige",
+          "country_code": "199",
+          "country_concept_id": "i46j_HmG_v64",
+          "street_address": "August Barks Gata 30 A",
+          "postcode": "42132",
+          "city": "Västra Frölunda",
+          "coordinates": [
+            11.9464343738448,
+            57.6492225511355
+          ]
+        }
+      ],
+      "must_have": {
+        "skills": [],
+        "languages": [],
+        "work_experiences": [],
+        "education": [],
+        "education_level": []
+      },
+      "nice_to_have": {
+        "skills": [],
+        "languages": [],
+        "work_experiences": [],
+        "education": [],
+        "education_level": []
+      },
+      "application_contacts": [],
+      "publication_date": "2026-09-18T14:36:00",
+      "last_publication_date": "2026-10-09T23:59:59",
+      "removed": false,
+      "removed_date": null,
+      "source_type": "VIA_ANNONSERA",
+      "timestamp": 1789734960671
+    }
+  ]
+}

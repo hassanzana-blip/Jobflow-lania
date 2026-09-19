@@ -1,0 +1,40 @@
+{
+  "fileKey": "KFTJVhbRq9phUGbFjPeud8",
+  "url": "https://www.figma.com/design/KFTJVhbRq9phUGbFjPeud8",
+  "phase": "initial-foundations-and-flows-incomplete",
+  "collections": [
+    "VariableCollectionId:2:2",
+    "VariableCollectionId:2:3",
+    "VariableCollectionId:2:4",
+    "VariableCollectionId:2:5"
+  ],
+  "pages": {
+    "brand": "0:1",
+    "foundations": "3:47",
+    "components": "3:48",
+    "criticalFlows": "3:49",
+    "handoff": "3:50"
+  },
+  "components": {
+    "buttonSet": "9:2",
+    "jobCard": "11:2",
+    "approvalCard": "12:3"
+  },
+  "frames": {
+    "brand": "3:51",
+    "foundations": "3:57",
+    "landingDesktop": "13:2",
+    "dashboardDesktop": "13:3",
+    "dashboardMobile": "13:4",
+    "onboardingMobile": "13:5",
+    "applicationReviewMobile": "13:6",
+    "handoffStatus": "20:2"
+  },
+  "selectedDirection": {
+    "name": "Nästa kapitel",
+    "page": "26:2",
+    "mobileFrame": "26:3",
+    "reference": "exec-5f1f0664-d3e8-4d7d-96ee-d485fb4aa4a0.png",
+    "qa": "blocked-browser-access"
+  }
+}

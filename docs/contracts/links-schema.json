@@ -1,0 +1,167 @@
+{
+  "swagger": "2.0",
+  "basePath": "/",
+  "paths": {
+    "/ad/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "get": {
+        "responses": {
+          "404": {
+            "description": "Job ad not found"
+          }
+        },
+        "description": "Load a job ad by ID",
+        "operationId": "get_proxy",
+        "tags": [
+          "JobAd Links"
+        ]
+      }
+    },
+    "/joblinks": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "description": "Search scraped ads using parameters and/or freetext",
+        "operationId": "get_search_job_link",
+        "parameters": [
+          {
+            "name": "published-after",
+            "in": "query",
+            "type": "string",
+            "pattern": "^(\\d\\d\\d\\d-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])T(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]))|(\\d+)$",
+            "description": "Fetch job ads published after specified date and time."
+          },
+          {
+            "name": "occupation-group",
+            "in": "query",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "One or more occupational group concept ID according to the taxonomy"
+          },
+          {
+            "name": "occupation-field",
+            "in": "query",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "One or more occupational field concept ID according to the taxonomy"
+          },
+          {
+            "name": "municipality",
+            "in": "query",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "One or more municipality concept ID according to the taxonomy"
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "One or more region concept ID according to the taxonomy"
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "One or more country concept ID according to the taxonomy"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "type": "string",
+            "enum": [
+              "relevance",
+              "pubdate-desc",
+              "pubdate-asc"
+            ],
+            "description": "Sorting. relevance: relevance (points) (default sorting)pubdate-desc: published date, descending (newest job ad first)pubdate-asc: published date, ascending (oldest job ad first)"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "type": "string",
+            "description": "Freetext query"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2000,
+            "default": 0,
+            "description": "The offset parameter defines the offset from the first result you want to fetch. Valid range: (0-2000)"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "default": 10,
+            "description": "Number of results to fetch. Valid range: (0-100)"
+          },
+          {
+            "name": "exclude_source",
+            "in": "query",
+            "type": "string",
+            "description": "A source (i.e. source_links label) to exclude from result"
+          }
+        ],
+        "tags": [
+          "JobAd Links"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "JobAd Links",
+    "version": "1.4.5",
+    "description": "This API is a joint effort between the Swedish Public Employment Service and some of Sweden's largest job board sites. The searchable dataset in this API is called JobAd Links and contains references and metadata linked to job ads provided by job boards. It includes around 30% more ads than Platsbanken.\n\n  1. Free to use for everyone\n\n  2. No registration is needed\n\n  3. You can also get the raw data as files [here](https://data.arbetsformedlingen.se/annonser/jobtechlinks/). \n    These files do not include all the original data in the ads but includes a link to the original source.\n\n# How it works\n\nThe ads shown in the API are updated once a day. This service uses machine learning to classify ads according to the Swedish classification system for occupations (SSYK). Every job ad description is truncated to ensure that the end user visits the original job site. We ask users of the API to respect the business model by linking back to the original site.\n\n# Getting started\n\nA getting started guide for search queries is [documented here](https://gitlab.com/arbetsformedlingen/job-ads/joblinks-search-api/-/blob/main/docs/gettingStarted.md). The easiest way is to use free text search with the attribute **q** below, for example 'systemutvecklare stockholm'. If you want to search for official occupations based on SSYK, use [this end user interface for occasional lookup](https://atlas.jobtechdev.se/) or [the taxonomy API for programmatic access](https://taxonomy.api.jobtechdev.se/v1/taxonomy/swagger-ui/) to get the IDs for occupation groups and fields. For example, the occupation group 'Bagare och konditorer' translates to concept ID '5qT8_z9d_8rw', which can be used in the field occupation-group.\n\n## Useful links\n  - [Getting Started](https://gitlab.com/arbetsformedlingen/job-ads/joblinks-search-api/-/blob/main/docs/gettingStarted.md)\n  - [Code examples](https://gitlab.com/arbetsformedlingen/job-ads/getting-started-code-examples/code-examples-start-here)\n  - [Taxonomy Getting Started](https://arbetsformedlingen.gitlab.io/taxonomy-dev/projects/jobtech-taxonomy/overview.html)\n  - [Taxonomy Atlas](https://atlas.jobtechdev.se)  \n"
+  },
+  "produces": [
+    "application/json"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "tags": [
+    {
+      "name": "JobAd Links",
+      "description": "Endpoint for JobAd Links"
+    }
+  ],
+  "responses": {
+    "ParseError": {
+      "description": "When a mask can't be parsed"
+    },
+    "MaskError": {
+      "description": "When any error occurs on mask"
+    }
+  }
+}

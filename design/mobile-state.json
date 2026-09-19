@@ -1,0 +1,18 @@
+{
+  "fileKey": "KFTJVhbRq9phUGbFjPeud8",
+  "page": "30:2",
+  "screens": {
+    "home": "30:11",
+    "detail": "30:12",
+    "tracker": "30:13",
+    "profile": "30:14"
+  },
+  "components": {
+    "jobCard": "31:2",
+    "navigation": "32:2",
+    "appIcon": "41:20"
+  },
+  "collection": "VariableCollectionId:30:3",
+  "code": "src/components/mobile-workspace.tsx",
+  "qa": "Browser blocked; Figma home inspected"
+}
