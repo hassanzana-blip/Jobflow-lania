@@ -18,7 +18,7 @@ const queue = new Queue("jobbflow", {
 });
 try {
   const requests =
-    await sql`select id,user_id from deletion_requests where state in ('requested','retry_required') order requested_at limit 100`;
+    await sql`select id,user_id from jobbflow.deletion_requests where state in ('requested','retry_required') order requested_at limit 100`;
   for (const request of requests) {
     const jobId = `delete-${request.id}`;
     const previous = await queue.getJob(jobId);

@@ -13,6 +13,6 @@ export async function rateLimit(
     .update(`${uid}:${operation}:${bucket}`)
     .digest("hex");
   const [row] =
-    await sql`insert into api_rate_limits(key,count,expires_at) values(${key},1,to_timestamp(${(bucket + 1) * seconds})) on conflict(key) do update set count=api_rate_limits.count+1 returning count`;
+    await sql`insert into jobbflow.api_rate_limits(key,count,expires_at) values(${key},1,to_timestamp(${(bucket + 1) * seconds})) on conflict(key) do update set count=api_rate_limits.count+1 returning count`;
   if (row.count > max) throw new Error("RATE_LIMITED");
 }

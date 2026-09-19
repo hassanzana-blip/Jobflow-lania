@@ -1,3 +1,5 @@
+> Current deployment status: see [LIVE-SETUP.md](LIVE-SETUP.md). JobbFlow now uses the isolated `jobbflow` schema; historical public-schema migrations must not be deployed.
+
 # JobbFlow mobile release — 19 September 2026
 
 This is a substantial implementation update, not a production launch. The full original product brief remains the acceptance target.

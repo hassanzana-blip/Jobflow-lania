@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { PGlite } from "@electric-sql/pglite";
 import { pgcrypto } from "@electric-sql/pglite/contrib/pgcrypto";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 const a = "11111111-1111-4111-8111-111111111111",
   b = "22222222-2222-4222-8222-222222222222";
 test("real migrations: private storage, user isolation, quota and cascading deletion", async () => {
@@ -11,17 +11,11 @@ test("real migrations: private storage, user isolation, quota and cascading dele
     await db.exec(
       `create role anon;create role authenticated;create role service_role;create schema auth;create schema storage;create table auth.users(id uuid primary key);create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema public,auth to authenticated;`,
     );
-    for (const file of [
-      "0001_core.sql",
-      "0002_workspace.sql",
-      "0003_generation_leases.sql",
-    ])
-      await db.exec(
-        await readFile(
-          new URL("../supabase/migrations/" + file, import.meta.url),
-          "utf8",
-        ),
-      );
+    await db.exec("create table public.profiles(marker text); insert into public.profiles values('legacy-preserved');");
+    for (const file of (await readdir(new URL('../supabase/migrations/', import.meta.url))).filter(f => f.endsWith('.sql')).sort())
+      await db.exec(await readFile(new URL('../supabase/migrations/' + file, import.meta.url), 'utf8'));
+    assert.equal((await db.query<any>("select marker from public.profiles")).rows[0].marker, 'legacy-preserved');
+    await db.exec("set search_path=jobbflow,pg_temp");
     await db.query<any>("insert into auth.users values($1),($2)", [a, b]);
     const profiles = await db.query<any>(
       "select count(*)::int as count from profiles",
@@ -33,7 +27,7 @@ test("real migrations: private storage, user isolation, quota and cascading dele
       false,
     );
     await db.exec(
-      "grant select,insert,update,delete on all tables in schema public to authenticated;",
+      "grant select,insert,update,delete on all tables in schema jobbflow to authenticated;",
     );
     await db.query<any>("select set_config('request.jwt.claim.sub',$1,false)", [
       a,

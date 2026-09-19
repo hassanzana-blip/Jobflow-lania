@@ -15,10 +15,10 @@ export async function POST(req: Request) {
       .strict()
       .parse(await req.json());
     await database().begin(async (tx) => {
-      await tx`insert into deletion_requests(user_id) values(${user.id}) on conflict(user_id) do nothing`;
-      await tx`update profiles set state='deleting' where user_id=${user.id}`;
-      await tx`update notifications set status='canceled' where user_id=${user.id} and status='pending'`;
-      await tx`update agent_runs set status='canceled' where user_id=${user.id} and status in ('queued','running')`;
+      await tx`insert into jobbflow.deletion_requests(user_id) values(${user.id}) on conflict(user_id) do nothing`;
+      await tx`update jobbflow.profiles set state='deleting' where user_id=${user.id}`;
+      await tx`update jobbflow.notifications set status='canceled' where user_id=${user.id} and status='pending'`;
+      await tx`update jobbflow.agent_runs set status='canceled' where user_id=${user.id} and status in ('queued','running')`;
     });
     await client.auth.signOut();
     return Response.json(

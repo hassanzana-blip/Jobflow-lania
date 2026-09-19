@@ -1,3 +1,4 @@
+import { database } from "@/server/db";
 import { requireUser } from "@/server/supabase";
 import { errorResponse } from "@/server/request";
 const tables = [
@@ -29,39 +30,18 @@ const tables = [
 ];
 export async function GET() {
   try {
-    const { client, user } = await requireUser();
+    const { user } = await requireUser();
     const data: Record<string, unknown> = {
       identity: { id: user.id, email: user.email },
     };
-    for (const table of tables) {
-      const rows: unknown[] = [];
-      let offset = 0;
-      while (true) {
-        const result = await client
-          .from(table)
-          .select("*")
-          .eq("user_id", user.id)
-          .order(
-            table === "saved_jobs" || table === "dismissed_jobs"
-              ? "job_id"
-              : [
-                    "profiles",
-                    "candidate_preferences",
-                    "subscriptions",
-                    "notification_settings",
-                  ].includes(table)
-                ? "user_id"
-                : "id",
-          )
-          .range(offset, offset + 499);
-        if (result.error) throw result.error;
-        rows.push(...result.data);
-        if (result.data.length < 500) break;
-        offset += 500;
-        if (offset > 100000) throw new Error("EXPORT_REQUIRES_BACKGROUND_JOB");
+    const sql = database();
+    await sql.begin("isolation level repeatable read read only", async tx => {
+      for (const table of tables) {
+        const rows = await tx`select * from ${tx(`jobbflow.${table}`)} where user_id=${user.id} limit 100001`;
+        if (rows.length > 100000) throw new Error("EXPORT_REQUIRES_BACKGROUND_JOB");
+        data[table] = rows;
       }
-      data[table] = rows;
-    }
+    });
     return new Response(
       JSON.stringify({ exportedAt: new Date().toISOString(), data }, null, 2),
       {

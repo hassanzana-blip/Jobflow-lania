@@ -168,6 +168,13 @@ export const sv = {
     login: "Logga in",
     magic: "Skicka inloggningslänk",
     busy: "Ett ögonblick…",
+    forgot: "Glömt lösenord?",
+    recoveryTitle: "Få tillbaka tillgången.",
+    recoveryButton: "Skicka återställningslänk",
+    resetTitle: "Välj ett nytt lösenord.",
+    resetButton: "Spara nytt lösenord",
+    recoverySent: "Om adressen är registrerad får du en länk för att återställa lösenordet.",
+    resetExpired: "Länken har gått ut. Begär en ny återställningslänk.",
     passwordHint: "Minst 12 tecken.",
     checkEmail: "Kontrollera din e-post för att fortsätta.",
     error:

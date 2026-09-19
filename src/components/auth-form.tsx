@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState } from "react";
 import { Button } from "./ui";
 import { sv } from "@/i18n/sv";
@@ -24,11 +25,11 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
         }),
       });
       const body = await r.json();
-      if (!r.ok) throw new Error();
+      if (!r.ok) throw new Error(typeof body.error === "string" ? body.error : sv.auth.error);
       if (body.redirect) window.location.assign(body.redirect);
       else setMessage(sv.auth.checkEmail);
-    } catch {
-      setMessage(sv.auth.error);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : sv.auth.error);
     } finally {
       setBusy(false);
     }
@@ -76,7 +77,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
             minLength={mode === "signup" ? 12 : 1}
             maxLength={128}
           />
-          <span className="form-hint">{sv.auth.passwordHint}</span>
+          {mode === "signup" && <span className="form-hint">{sv.auth.passwordHint}</span>}
         </label>
       )}
       {mode === "signup" && (
@@ -92,6 +93,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
             ? sv.auth.submit
             : sv.auth.login}
       </Button>
+      {mode === "login" && <Link href="/glomt-losenord">{sv.auth.forgot}</Link>}
       <p role="status" className="form-status">
         {message}
       </p>

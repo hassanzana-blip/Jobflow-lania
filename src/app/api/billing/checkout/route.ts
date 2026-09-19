@@ -1,6 +1,7 @@
+import { database } from "@/server/db";
 import { z } from "zod";
 import { stripe } from "@/server/billing";
-import { requireUser, serviceClient } from "@/server/supabase";
+import { requireUser } from "@/server/supabase";
 import { mutationGuard, errorResponse } from "@/server/request";
 export async function POST(req: Request) {
   try {
@@ -18,13 +19,9 @@ export async function POST(req: Request) {
       agent: process.env.STRIPE_AGENT_PRICE_ID,
     }[plan];
     if (!price) throw new Error("BILLING_NOT_CONFIGURED");
-    const db = serviceClient();
-    const { data: sub, error } = await db
-      .from("subscriptions")
-      .select("stripe_customer_id,status")
-      .eq("user_id", user.id)
-      .single();
-    if (error) throw error;
+    const db = database();
+    const [sub] = await db`select stripe_customer_id,status from jobbflow.subscriptions where user_id=${user.id}`;
+    if (!sub) throw new Error("NO_SUBSCRIPTION");
     if (sub.status === "active") throw new Error("USE_BILLING_PORTAL");
     let customer = sub.stripe_customer_id;
     const api = stripe();
@@ -35,11 +32,7 @@ export async function POST(req: Request) {
           { idempotencyKey: `customer-${user.id}` },
         )
       ).id;
-      const { error: saveError } = await db
-        .from("subscriptions")
-        .update({ stripe_customer_id: customer })
-        .eq("user_id", user.id);
-      if (saveError) throw saveError;
+      await db`update jobbflow.subscriptions set stripe_customer_id=${customer} where user_id=${user.id}`;
     }
     const base = process.env.APP_BASE_URL!;
     const session = await api.checkout.sessions.create({

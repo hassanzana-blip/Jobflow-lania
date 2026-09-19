@@ -9,3 +9,6 @@ playwright-report/
 *.log
 
 .netlify-static/
+
+*.tsbuildinfo
+supabase/.temp/

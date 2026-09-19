@@ -49,15 +49,15 @@ export async function loadWorkspace(): Promise<WorkspaceData> {
     settings,
     runs,
   ] = await Promise.all([
-    sql`select * from profiles where user_id=${uid} and state='active'`,
-    sql`select * from candidate_preferences where user_id=${uid}`,
-    sql`select f.* from candidate_facts f join profiles p on p.user_id=f.user_id and p.version=f.profile_version where f.user_id=${uid} order by f.created_at,f.id`,
-    sql`select distinct j.* from jobs j where j.id in (select job_id from job_matches where user_id=${uid} union select job_id from saved_jobs where user_id=${uid} union select job_id from applications where user_id=${uid}) order by j.published_at desc limit 150`,
-    sql`select job_id from saved_jobs where user_id=${uid}`,
-    sql`select job_id from dismissed_jobs where user_id=${uid}`,
-    sql`select a.*,d.cv_version_id,v.content,v.reviewed_at from applications a left join application_documents d on d.application_id=a.id and d.user_id=a.user_id and d.kind='tailored_cv' left join cv_versions v on v.id=d.cv_version_id and v.user_id=a.user_id where a.user_id=${uid} order by a.updated_at desc limit 200`,
-    sql`select new_matches from notification_settings where user_id=${uid}`,
-    sql`select created_at,source_status from search_runs where user_id=${uid} order by created_at desc limit 1`,
+    sql`select * from jobbflow.profiles where user_id=${uid} and state='active'`,
+    sql`select * from jobbflow.candidate_preferences where user_id=${uid}`,
+    sql`select f.* from jobbflow.candidate_facts f join jobbflow.profiles p on p.user_id=f.user_id and p.version=f.profile_version where f.user_id=${uid} order by f.created_at,f.id`,
+    sql`select distinct j.* from jobbflow.jobs j where j.id in (select job_id from jobbflow.job_matches where user_id=${uid} union select job_id from jobbflow.saved_jobs where user_id=${uid} union select job_id from jobbflow.applications where user_id=${uid}) order by j.published_at desc limit 150`,
+    sql`select job_id from jobbflow.saved_jobs where user_id=${uid}`,
+    sql`select job_id from jobbflow.dismissed_jobs where user_id=${uid}`,
+    sql`select a.*,d.cv_version_id,v.content,v.reviewed_at from jobbflow.applications a left join jobbflow.application_documents d on d.application_id=a.id and d.user_id=a.user_id and d.kind='tailored_cv' left join jobbflow.cv_versions v on v.id=d.cv_version_id and v.user_id=a.user_id where a.user_id=${uid} order by a.updated_at desc limit 200`,
+    sql`select new_matches from jobbflow.notification_settings where user_id=${uid}`,
+    sql`select created_at,source_status from jobbflow.search_runs where user_id=${uid} order by created_at desc limit 1`,
   ]);
   const profile = profiles[0];
   if (!profile) throw new Error("ACCOUNT_NOT_ACTIVE");
@@ -162,14 +162,14 @@ export async function searchForUser(
   const rows: WorkspaceJob[] = [];
   await sql.begin(async (tx) => {
     const [p] =
-      await tx`select version from profiles where user_id=${uid} and state='active' for update`;
+      await tx`select version from jobbflow.profiles where user_id=${uid} and state='active' for update`;
     if (!p) throw new Error("ACCOUNT_NOT_ACTIVE");
     for (const j of unique) {
       const [saved] =
-        await tx`insert into jobs(source_id,external_id,title,employer_label,canonical_url,source_url,location,municipality_id,occupation_ids,employment_type,work_style,published_at,deadline,removed_at,description,description_completeness,fetched_at)
+        await tx`insert into jobbflow.jobs(source_id,external_id,title,employer_label,canonical_url,source_url,location,municipality_id,occupation_ids,employment_type,work_style,published_at,deadline,removed_at,description,description_completeness,fetched_at)
       values(${j.source},${j.externalId},${j.title},${j.employer},${j.canonicalUrl},${j.sourceUrl},${j.location},${j.municipalityId},${tx.array(j.occupationIds)},${j.employment},${j.workStyle},${j.publishedAt},${j.deadline},null,${j.description},${j.descriptionCompleteness},now())
       on conflict(source_id,external_id) do update set title=excluded.title,employer_label=excluded.employer_label,description=excluded.description,source_url=excluded.source_url,location=excluded.location,work_style=excluded.work_style,deadline=excluded.deadline,removed_at=null,fetched_at=now() returning id`;
-      await tx`insert into job_matches(user_id,job_id,profile_version,method_version,score,coverage,summary) values(${uid},${saved.id},${p.version},'retrieval-v1',null,0,'Sökresultat, inte en djupanalys') on conflict do nothing`;
+      await tx`insert into jobbflow.job_matches(user_id,job_id,profile_version,method_version,score,coverage,summary) values(${uid},${saved.id},${p.version},'retrieval-v1',null,0,'Sökresultat, inte en djupanalys') on conflict do nothing`;
       rows.push({
         ...j,
         id: saved.id,
@@ -180,7 +180,7 @@ export async function searchForUser(
         gaps: [],
       });
     }
-    await tx`insert into search_runs(id,user_id,retrieved,retained,source_status) values(${randomUUID()},${uid},${result.jobs.length},${rows.length},${tx.json(result.sources)})`;
+    await tx`insert into jobbflow.search_runs(id,user_id,retrieved,retained,source_status) values(${randomUUID()},${uid},${result.jobs.length},${rows.length},${tx.json(result.sources)})`;
   });
   return {
     jobs: rows,

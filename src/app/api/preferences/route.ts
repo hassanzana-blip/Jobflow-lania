@@ -1,3 +1,4 @@
+import { database } from "@/server/db";
 import { z } from "zod";
 import { requireUser } from "@/server/supabase";
 import { mutationGuard, errorResponse } from "@/server/request";
@@ -11,17 +12,10 @@ const schema = z
 export async function PATCH(req: Request) {
   try {
     mutationGuard(req);
-    const { client, user } = await requireUser();
+    const { user } = await requireUser();
     const p = schema.parse(await req.json());
-    const { error } = await client
-      .from("candidate_preferences")
-      .update({
-        roles: p.roles,
-        locations: p.locations,
-        work_style: p.workStyle,
-      })
-      .eq("user_id", user.id);
-    if (error) throw error;
+    const sql = database();
+    await sql`update jobbflow.candidate_preferences set roles=${sql.array(p.roles)}, locations=${sql.array(p.locations)}, work_style=${p.workStyle} where user_id=${user.id}`;
     return Response.json({ ok: true });
   } catch (e) {
     return errorResponse(e);

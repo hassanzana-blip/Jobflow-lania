@@ -6,7 +6,7 @@ export async function GET(req: Request) {
     const c = await userClient();
     const { error } = await c.auth.exchangeCodeForSession(code);
     if (!error)
-      return NextResponse.redirect(new URL("/app", process.env.APP_BASE_URL));
+      return NextResponse.redirect(new URL(new URL(req.url).searchParams.get("next") === "reset-password" ? "/aterstall-losenord" : "/app", process.env.APP_BASE_URL));
   }
   return NextResponse.redirect(new URL("/logga-in", process.env.APP_BASE_URL));
 }

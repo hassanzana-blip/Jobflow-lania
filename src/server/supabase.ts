@@ -1,4 +1,5 @@
 import "server-only";
+import { database } from "./db";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
@@ -53,11 +54,8 @@ export async function requireUser() {
     error,
   } = await client.auth.getUser();
   if (error || !user) throw new Error("UNAUTHENTICATED");
-  const { data: profile, error: pe } = await client
-    .from("profiles")
-    .select("state")
-    .eq("user_id", user.id)
-    .single();
-  if (pe || profile?.state !== "active") throw new Error("ACCOUNT_NOT_ACTIVE");
+  const sql = database();
+  const [profile] = await sql`select state from jobbflow.profiles where user_id=${user.id}`;
+  if (profile?.state !== "active") throw new Error("ACCOUNT_NOT_ACTIVE");
   return { client, user };
 }

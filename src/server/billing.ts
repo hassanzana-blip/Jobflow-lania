@@ -26,14 +26,14 @@ export async function reconcileSubscription(event: Stripe.Event) {
     typeof object.customer === "string" ? object.customer : object.customer?.id;
   if (!customer) return;
   await sql.begin(async (tx) => {
-    await tx`insert into stripe_events(id,type) values(${event.id},${event.type}) on conflict(id) do nothing`;
+    await tx`insert into jobbflow.stripe_events(id,type) values(${event.id},${event.type}) on conflict(id) do nothing`;
     const [record] =
-      await tx`select state from stripe_events where id=${event.id} for update`;
+      await tx`select state from jobbflow.stripe_events where id=${event.id} for update`;
     if (record?.state === "processed") return;
     const [account] =
-      await tx`select user_id from subscriptions where stripe_customer_id=${customer} for update`;
+      await tx`select user_id from jobbflow.subscriptions where stripe_customer_id=${customer} for update`;
     if (!account) {
-      await tx`update stripe_events set state='unmapped',error_code='CUSTOMER_NOT_MAPPED' where id=${event.id}`;
+      await tx`update jobbflow.stripe_events set state='unmapped',error_code='CUSTOMER_NOT_MAPPED' where id=${event.id}`;
       return;
     }
     // Fetch within the account lock. Old webhook delivery cannot overwrite a newer
@@ -57,7 +57,7 @@ export async function reconcileSubscription(event: Stripe.Event) {
       sub?.status === "active" && item
         ? priceMap().get(item.price.id)!
         : "free";
-    await tx`update subscriptions set plan=${plan},stripe_subscription_id=${sub?.id ?? null},status=${sub?.status ?? "free"},period_start=${item ? new Date(item.current_period_start * 1000) : null},period_end=${item ? new Date(item.current_period_end * 1000) : null},cancel_at_period_end=${sub?.cancel_at_period_end ?? false},updated_at=now() where user_id=${account.user_id}`;
-    await tx`update stripe_events set state='processed',processed_at=now(),error_code=null where id=${event.id}`;
+    await tx`update jobbflow.subscriptions set plan=${plan},stripe_subscription_id=${sub?.id ?? null},status=${sub?.status ?? "free"},period_start=${item ? new Date(item.current_period_start * 1000) : null},period_end=${item ? new Date(item.current_period_end * 1000) : null},cancel_at_period_end=${sub?.cancel_at_period_end ?? false},updated_at=now() where user_id=${account.user_id}`;
+    await tx`update jobbflow.stripe_events set state='processed',processed_at=now(),error_code=null where id=${event.id}`;
   });
 }

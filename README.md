@@ -1,3 +1,5 @@
+> Current deployment status: see [LIVE-SETUP.md](docs/LIVE-SETUP.md). JobbFlow now uses the isolated `jobbflow` schema; historical public-schema migrations must not be deployed.
+
 # JobbFlow
 
 Swedish job discovery and candidate-controlled application preparation, built with Next.js 16, React and TypeScript.

@@ -1,3 +1,5 @@
+> Current deployment status: see [LIVE-SETUP.md](LIVE-SETUP.md). JobbFlow now uses the isolated `jobbflow` schema; historical public-schema migrations must not be deployed.
+
 # Netlify delivery
 
 ## Complete source — real server features
