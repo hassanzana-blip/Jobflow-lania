@@ -151,6 +151,17 @@ export const sv = {
       agent: "När du vill ha mest stöd.",
     },
   },
+  serverErrors: {
+    unconfigured: "Tjänsten är inte ansluten ännu.",
+    conflict: "Uppgifterna har ändrats. Ladda om sidan innan du sparar.",
+    sources:
+      "Jobbkällorna svarar inte just nu. Dina sparade jobb finns kvar.",
+    unauthenticated: "Logga in för att fortsätta.",
+    passwordRequired: "Fyll i ett lösenord på minst 12 tecken.",
+    consentRequired:
+      "Välj ett lösenord på minst 12 tecken och godkänn informationen om personuppgifter.",
+    generic: "Det gick inte att slutföra åtgärden.",
+  },
   footer: {
     line: "Ditt nästa steg, med dig i kontroll.",
     privacy: "Integritet",
@@ -185,6 +196,41 @@ export const sv = {
     haveAccount: "Har du redan ett konto?",
     noAccount: "Ny här?",
     consent: "Jag har läst informationen om hur mina uppgifter behandlas.",
+    errors: {
+      AUTH_INVALID_CREDENTIALS:
+        "Fel e-postadress eller lösenord. Kontrollera uppgifterna och försök igen.",
+      AUTH_EMAIL_NOT_CONFIRMED:
+        "E-postadressen är inte bekräftad ännu. Öppna länken i bekräftelsemejlet, eller begär en ny inloggningslänk.",
+      AUTH_WEAK_PASSWORD:
+        "Lösenordet är för svagt. Välj minst 12 tecken och undvik ord som är lätta att gissa.",
+      AUTH_SAME_PASSWORD:
+        "Det nya lösenordet är samma som det gamla. Välj ett annat.",
+      AUTH_LINK_EXPIRED:
+        "Länken har gått ut. Begär en ny länk så skickar vi en färsk.",
+      AUTH_LINK_INVALID:
+        "Länken gick inte att använda. Den kan redan vara använd eller ha ändrats på vägen.",
+      RATE_LIMITED:
+        "För många försök. Vänta en stund och försök igen.",
+      AUTH_FAILED:
+        "Det gick inte att fortsätta. Kontrollera uppgifterna och försök igen.",
+    },
+  },
+  linkError: {
+    title: "Länken fungerade inte.",
+    reasons: {
+      expired:
+        "Länken har gått ut. Av säkerhetsskäl gäller varje länk bara en kort stund.",
+      invalid:
+        "Länken gick inte att använda. Den kan redan ha använts, eller ha ändrats av e-postprogrammet på vägen.",
+      denied:
+        "Inloggningen avbröts. Länken har redan använts eller återkallats.",
+      missing:
+        "Adressen saknar den information som behövs för att logga in dig.",
+    },
+    next: "Begär en ny länk så kommer du vidare. Ditt konto är oförändrat.",
+    login: "Till inloggningen",
+    recovery: "Återställ lösenordet",
+    signup: "Skapa konto",
   },
   app: {
     forYou: "För dig",

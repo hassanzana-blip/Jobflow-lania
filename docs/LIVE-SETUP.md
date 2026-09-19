@@ -33,6 +33,34 @@ Use the migration in supabase/migrations. docs/legacy-migrations is archival onl
 
 Secrets must never be stored in source, commits, frontend, logs or chat. Resend SMTP needs to be configured inside Supabase as well as the application email adapter.
 
+## Supabase e-mail templates (must be changed before account flows work)
+
+The callback no longer relies on PKCE. `@supabase/ssr` keeps the `code_verifier`
+cookie in the browser that *asked* for the link, so a link opened on a phone
+after being requested on a laptop could never be exchanged — it failed silently
+and redirected to `/logga-in`. `/auth/callback` now redeems a `token_hash` with
+`verifyOtp`, which is device independent, and still accepts `code` so links
+already sitting in inboxes keep working.
+
+Set each template's link in Supabase Auth → Email Templates to the matching URL:
+
+| Template | Link |
+|---|---|
+| Confirm signup | `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email` |
+| Magic Link | `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=magiclink` |
+| Reset Password | `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery&next=reset-password` |
+| Invite user | `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=invite` |
+| Change Email Address | `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email_change` |
+
+Until the templates are changed, Supabase keeps sending `?code=`, which still
+works in the requesting browser and now lands on `/lankfel` with an explanation
+instead of a silent redirect when it is opened elsewhere.
+
+Also turn **click and open tracking off** for transactional mail in Resend.
+Rewritten links (`r.us-east-1.awstrack.me`) are followed by link scanners and
+mail-client prefetching, which burns the single-use token before the candidate
+clicks it.
+
 ## Remaining work
 Live signup/confirmation/login/logout/recovery; CV upload/scanning/extraction; contextual matching; daily ingest persistence (INGEST_PERSISTENCE_NOT_IMPLEMENTED); email outbox; billing lifecycle; browser assistance; admin and privacy verification; all specified mobile widths, visual/keyboard/axe E2E and production deployment.
 

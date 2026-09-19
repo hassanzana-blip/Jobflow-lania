@@ -19,12 +19,12 @@ npm run dev
 ```
 
 - `/` — public Swedish landing and pricing.
-- `/hitta-jobb` — real public JobSearch and JobAd Links search, no account needed.
+- `/hitta-jobb` — real public JobSearch and JobAd Links search, no account needed. The query and work-style filter live in the URL (`?q=…&arbetsform=…`), so a result list can be shared and reloaded.
 - `/produktvisning` — interactive mobile product example, clearly fictional. No real applications or accounts; changes live only in memory.
 - `/kom-igang` and `/logga-in` — real Supabase Auth when configured.
 - `/app` — authenticated mobile workspace with database-backed profile, saved jobs and application tracker.
 
-`npm test` runs 28 core, contract, PDF and PostgreSQL migration tests. `npm run build` builds the native web app. `npm run test:e2e` runs authored Playwright/axe tests in a browser-capable environment (not executed here).
+`npm test` runs 36 core, contract, auth, PDF and PostgreSQL migration tests. `npm run build` builds the native web app. `npm run test:e2e` runs 13 Playwright/axe checks; it builds and starts a production server first, because `next dev` does not hydrate in sandboxed runners and every interaction then silently does nothing. `npm run check:live` verifies that a deployment's own `DATABASE_URL` actually connects, that the migration is applied and that RLS is on — it prints variable names, hosts and counts, never a secret.
 
 ## Netlify
 

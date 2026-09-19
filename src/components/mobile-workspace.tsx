@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
 import {
   ArrowDownToLine,
@@ -33,6 +34,7 @@ import {
   type WorkspaceJob,
   type WorkspaceProfile,
 } from "@/core/workspace";
+import { searchUrlQuery, type WorkStyle } from "@/core/search-params";
 import { ProfileWizard } from "./profile-wizard";
 import { DeleteAccount } from "./delete-account";
 
@@ -112,15 +114,26 @@ export function MobileWorkspace({
   initial,
   mode = "live",
   initialView = "home",
+  initialQuery = "",
+  initialWorkStyle = "any",
+  urlSync = false,
 }: {
   initial: WorkspaceData;
   mode?: Mode;
   initialView?: View;
+  /** Search state the page read out of the URL; see `core/search-params`. */
+  initialQuery?: string;
+  initialWorkStyle?: WorkStyle;
+  /** Write the search state back into the URL (public job search only). */
+  urlSync?: boolean;
 }) {
+  const router = useRouter(),
+    pathname = usePathname();
   const [data, setData] = useState(initial),
     [view, setView] = useState<View>(initialView);
-  const [query, setQuery] = useState(""),
-    [workStyle, setWorkStyle] = useState("any"),
+  const [query, setQuery] = useState(initialQuery),
+    [workStyle, setWorkStyle] = useState<string>(initialWorkStyle),
+    [searched, setSearched] = useState(initialQuery),
     [filterOpen, setFilterOpen] = useState(false);
   const [selected, setSelected] = useState<string | null>(null),
     [application, setApplication] = useState<string | null>(null),
@@ -141,6 +154,16 @@ export function MobileWorkspace({
     query: mode === "guest" ? "" : query,
     workStyle,
   });
+  // The URL follows the *committed* search, not every keystroke, and uses
+  // replace so the back button still leaves the page instead of stepping
+  // through a history entry per search.
+  useEffect(() => {
+    if (!urlSync) return;
+    const search = searchUrlQuery(searched, workStyle);
+    const next = search ? `${pathname}?${search}` : pathname;
+    if (next !== window.location.pathname + window.location.search)
+      router.replace(next, { scroll: false });
+  }, [urlSync, searched, workStyle, pathname, router]);
   async function run(key: string, action: () => Promise<void>) {
     if (actionLock.current) return;
     actionLock.current = true;
@@ -211,6 +234,7 @@ export function MobileWorkspace({
       setMessage(t.demoHint);
       return;
     }
+    setSearched(query.trim());
     await run("search", async () => {
       const result =
         mode === "guest"
@@ -1282,9 +1306,14 @@ function ApplicationEditor({
         )}
       </section>
       <form className="jf-form" onSubmit={saveStatus}>
-        <label className="jf-field">
-          {t.statusLabel}
+        {/* The hint is described-by, not part of the label: a <small> inside a
+            wrapping <label> becomes part of the control's accessible name, so
+            a screen reader announced the whole sentence as the field's name. */}
+        <div className="jf-field">
+          <label htmlFor="application-status">{t.statusLabel}</label>
           <select
+            id="application-status"
+            aria-describedby="application-status-hint"
             value={status}
             onChange={(e) => setStatus(e.target.value as ApplicationStatus)}
           >
@@ -1294,8 +1323,8 @@ function ApplicationEditor({
               </option>
             ))}
           </select>
-          <small>{t.markAppliedHint}</small>
-        </label>
+          <small id="application-status-hint">{t.markAppliedHint}</small>
+        </div>
         <label className="jf-field">
           {t.notes}
           <textarea

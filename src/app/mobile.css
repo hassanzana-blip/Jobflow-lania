@@ -15,6 +15,7 @@
   --color-text: var(--mobile-ink);
   --color-muted: var(--mobile-muted);
   --color-accent: var(--mobile-ink);
+  --color-accent-ink: var(--mobile-ink);
   --radius-control: 14px;
   font-size: 16px;
 }

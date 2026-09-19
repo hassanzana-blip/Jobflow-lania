@@ -1,41 +1,13 @@
 import "server-only";
 import { assertSameOrigin } from "@/core/security";
+import { resolveError } from "@/core/api-errors";
 export function mutationGuard(req: Request) {
   assertSameOrigin(req, process.env.APP_BASE_URL ?? "http://localhost:3000");
 }
 export function errorResponse(error: unknown) {
-  const code = error instanceof Error ? error.message : "UNKNOWN";
-  const status =
-    code === "RATE_LIMITED"
-      ? 429
-      : code === "VERSION_CONFLICT"
-        ? 409
-        : code === "NOT_FOUND"
-          ? 404
-          : code === "SOURCES_UNAVAILABLE"
-            ? 502
-            : code === "UNAUTHENTICATED"
-              ? 401
-              : code === "INVALID_ORIGIN"
-                ? 403
-                : code.includes("NOT_CONFIGURED")
-                  ? 503
-                  : 400;
+  const { code, status, message, field } = resolveError(error);
   return Response.json(
-    {
-      error:
-        status === 503
-          ? "Tjänsten är inte ansluten ännu."
-          : status === 429
-            ? "Vänta en stund och försök igen."
-            : status === 409
-              ? "Uppgifterna har ändrats. Ladda om sidan innan du sparar."
-              : status === 502
-                ? "Jobbkällorna svarar inte just nu. Dina sparade jobb finns kvar."
-                : status === 401
-                  ? "Logga in för att fortsätta."
-                  : "Det gick inte att slutföra åtgärden.",
-    },
+    { error: message, code, ...(field ? { field } : {}) },
     {
       status,
       headers: {

@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/*.test.ts",
     "test:e2e": "playwright test",
+    "check:live": "node --env-file-if-exists=.env.local scripts/check-live.mjs",
     "worker": "node --env-file-if-exists=.env.local workers/index.ts",
     "dispatch": "node --env-file-if-exists=.env.local workers/dispatch.ts",
     "build:netlify-preview": "node scripts/build-netlify-preview.mjs"
